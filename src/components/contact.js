@@ -12,25 +12,10 @@ export const Contact = () => {
           </span>
         </h1>
         <p className="px-4 mt-4 text-center text-secondary">
-          Feel free to email me about anything. Want some advice? Give some
-          feedback?
-        </p>
-        <p className="px-4 mt-1 text-center text-secondary">
-          You can also reach me around the web:{" "}
-          <ExtLink link="https://github.com/jeffjadulco" newTab>
-            GitHub
-          </ExtLink>
-          ,{" "}
-          <ExtLink link="https://twitter.com/jeffjadulco" newTab>
-            Twitter
-          </ExtLink>
-          ,{" "}
-          <ExtLink link="https://www.instagram.com/jeffjadulco/" newTab>
-            Instagram
-          </ExtLink>
+          Feel free to email me about anything - I’ll reply as soon as I can!
         </p>
         <div className="mx-auto  pt-10 flex justify-center">
-          <Button width="widest" link="mailto:hey@rakirahman.me">
+          <Button width="widest" link="mailto:mdrakiburrahman@gmail.com">
             <span className=" text-2xl font-semibold text-on-accent">
               Say hello
             </span>
