@@ -1,5 +1,5 @@
 import React from "react"
-import { ExtLink, Button } from "./atoms"
+import { Button } from "./atoms"
 
 export const Contact = () => {
   return (

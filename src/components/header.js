@@ -21,18 +21,8 @@ const Header = ({ activePage }) => (
         </svg>
       </Link>
       <span className="hidden sm:flex flex-grow items-center space-x-6">
-        <NavLink to="/" title="Home" selected={activePage === "/"}>
-          Home
-        </NavLink>
-        <NavLink to="/blog" title="Blog" selected={activePage === "blog"}>
+        <NavLink to="/" title="Blog" selected={activePage === "/"}>
           Blog
-        </NavLink>
-        <NavLink
-          to="/projects"
-          title="Projects"
-          selected={activePage === "projects"}
-        >
-          Projects
         </NavLink>
         <NavLink to="/about" title="About" selected={activePage === "about"}>
           About
