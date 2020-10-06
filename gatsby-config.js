@@ -1,14 +1,13 @@
 module.exports = {
   siteMetadata: {
     title: `Raki Rahman`,
-    description: `Raki Rahman is a game and javascript developer`,
+    description: `Raki Rahman is an Azure Solution Architect`,
     author: `Raki Rahman`,
     siteUrl:
       process.env.DEV_ENV === 1
         ? `https://dev.rakirahman.me`
         : `https://rakirahman.me`,
     image: `/images/og-card.png`,
-    twitterUsername: `@jeffjadulco`,
   },
   plugins: [
     {

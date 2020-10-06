@@ -20,7 +20,6 @@ function SEO({ description, lang, meta, title, blog, ogImage }) {
             defaultDescription: description
             author
             siteUrl
-            twitterUsername
           }
         }
         image: file(relativePath: { eq: "og-card.png" }) {
@@ -41,18 +40,13 @@ function SEO({ description, lang, meta, title, blog, ogImage }) {
     `
   )
 
-  const {
-    defaultTitle,
-    defaultDescription,
-    siteUrl,
-    twitterUsername,
-  } = site.siteMetadata
+  const { defaultTitle, defaultDescription, siteUrl } = site.siteMetadata
 
   const seo = {
     title: title || defaultTitle,
     titleTemplate: title
       ? `%s | ${defaultTitle}`
-      : `${defaultTitle} | Game and Javascript Developer`,
+      : `${defaultTitle} | Data & AI`,
     description: description || defaultDescription,
     image: `${siteUrl}${
       blog
@@ -97,26 +91,6 @@ function SEO({ description, lang, meta, title, blog, ogImage }) {
         {
           property: `og:type`,
           content: `website`,
-        },
-        {
-          name: `twitter:card`,
-          content: `summary_large_image`,
-        },
-        {
-          name: `twitter:image`,
-          content: seo.image,
-        },
-        {
-          name: `twitter:creator`,
-          content: twitterUsername,
-        },
-        {
-          name: `twitter:title`,
-          content: seo.title,
-        },
-        {
-          name: `twitter:description`,
-          content: seo.description,
         },
       ].concat(meta)}
     >

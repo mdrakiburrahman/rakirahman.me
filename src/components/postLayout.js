@@ -6,7 +6,7 @@ import { Link } from "gatsby"
 import Layout from "./layout"
 import SEO from "./seo"
 import { BlogTitle, BlogTitleInfo, ExtLink } from "./atoms"
-import Newsletter from "./newsletter"
+import Contact from "../components/contact"
 import TOC from "./toc"
 
 const shortcodes = {
@@ -43,7 +43,7 @@ const PostLayout = ({ data: { mdx, ogImage } }) => {
           </aside>
         )}
       </div>
-      <Newsletter />
+      <Contact />
     </Layout>
   )
 }
