@@ -14,7 +14,7 @@ const NotFoundPage = () => (
       </h1>
     </div>
     <p className="mt-20 lg:mt-24 font-medium text-center text-2xl text-secondary">
-      Page not found. The page you’re looking for does not exist.
+      The page you’re looking for doesn't exist (yet).
     </p>
   </Layout>
 )

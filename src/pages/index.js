@@ -13,10 +13,10 @@ const IndexPage = () => {
     <Layout activePage="/">
       <SEO />
       <div className="mt-12 flex flex-col-reverse lg:flex-row items-center lg:justify-between lg:space-x-6">
-        <h1 className="mt-12 lg:mt-0 max-w-3xl text-3xl sm:text-4xl text-primary font-semibold sm:text-left md:text-center lg:text-left">
+        <h1 className="mt-12 lg:mt-0 max-w-3xl text-3xl sm:text-4xl text-primary font-bold sm:text-left md:text-center lg:text-left">
           Hi, I’m Raki.
-          <br className="mb-6 lg:hidden" /> I build Cloud-Native Data & AI
-          Solutions on Azure.
+          <br className="mb-6 lg:hidden" /> I build Big Data & AI Solutions on
+          Microsoft Azure.
         </h1>
         <div className="relative">
           <Blob />
@@ -29,7 +29,7 @@ const IndexPage = () => {
       </div>
       <Heading>Articles</Heading>
       <p className="-mt-3 mb-12 text-tertiary">
-        Opinions expressed are solely my own and do not express the views or
+        Information presented are solely my own and do not express the views or
         opinions of my employer.
       </p>
       <PostList />

@@ -17,7 +17,7 @@ export const ButtonDefault = _ => {
       onClick={action("onButtonClicked")}
       width={select("Padding", paddingOptions, "normal")}
     >
-      <span className="text-2xl font-semibold">Say hello</span>
+      <span className="text-2xl font-semibold"> Say hello</span>
     </Button>
   )
 }

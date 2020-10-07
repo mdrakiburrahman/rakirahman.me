@@ -2,11 +2,12 @@
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](https://opensource.org/licenses/MIT)
 
-My personal website running on Gatsby.
+My personal blog running on Gatsby.
 
 ## Tech Stack
 
 - [React](https://reactjs.org/)
+- [GraphQL](https://graphql.org/)
 - [Gatsby](https://www.gatsbyjs.org/)
 - [Tailwind CSS](https://tailwindcss.com/)
 - [Storybook](https://storybook.js.org/)

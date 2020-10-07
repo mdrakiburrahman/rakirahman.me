@@ -44,9 +44,7 @@ function SEO({ description, lang, meta, title, blog, ogImage }) {
 
   const seo = {
     title: title || defaultTitle,
-    titleTemplate: title
-      ? `%s | ${defaultTitle}`
-      : `${defaultTitle} | Data & AI`,
+    titleTemplate: title ? `%s | ${defaultTitle}` : `Blog | ${defaultTitle}`,
     description: description || defaultDescription,
     image: `${siteUrl}${
       blog

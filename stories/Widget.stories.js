@@ -5,7 +5,6 @@ import Header from "../src/components/header"
 import Footer from "../src/components/footer"
 import { Blob } from "../src/components/atoms"
 import PostList from "../src/components/postList"
-import ProjectList from "../src/components/projectList"
 import Image from "../src/components/image"
 
 export default {
@@ -18,5 +17,4 @@ export const HeaderWidget = _ => <Header />
 export const FooterWidget = _ => <Footer />
 export const BlobWidget = _ => <Blob />
 export const PostListWidget = _ => <PostList />
-export const ProjectListWidget = _ => <ProjectList />
 export const ImageWidget = _ => <Image />
