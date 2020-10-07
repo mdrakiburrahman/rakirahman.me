@@ -5,8 +5,8 @@ module.exports = {
     author: `Raki Rahman`,
     siteUrl:
       process.env.DEV_ENV === 1
-        ? `https://dev.rakirahman.me`
-        : `https://rakirahman.me`,
+        ? `http://localhost:8000`
+        : `https://www.rakirahman.me`,
     image: `/images/og-card.png`,
   },
   plugins: [
@@ -52,8 +52,8 @@ module.exports = {
     {
       resolve: "gatsby-plugin-robots-txt",
       options: {
-        host: "https://rakirahman.me",
-        sitemap: "https://rakirahman.me/sitemap.xml",
+        host: "https://www.rakirahman.me",
+        sitemap: "https://www.rakirahman.me/sitemap.xml",
         policy: [{ userAgent: "*", allow: "/" }],
         env: {
           development: {

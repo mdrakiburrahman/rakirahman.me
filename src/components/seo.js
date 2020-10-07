@@ -88,7 +88,7 @@ function SEO({ description, lang, meta, title, blog, ogImage, ogUrl }) {
         },
         {
           property: `og:type`,
-          content: `website`,
+          content: `article`,
         },
       ].concat(meta)}
     >
