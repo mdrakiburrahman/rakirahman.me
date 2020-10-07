@@ -20,8 +20,9 @@ const PostLayout = ({ data: { mdx, ogImage } }) => {
       <SEO
         blog
         title={mdx.frontmatter.title}
-        description={mdx.excerpt}
+        description={mdx.frontmatter.description}
         ogImage={ogImage && ogImage.childImageSharp.fixed.src}
+        ogUrl={mdx.fields.slug}
       />
       <div className="flex justify-between mt-12 mb-12 relative">
         <article className="prose sm:prose md:prose-lg min-w-0 max-w-none tracking-normal">
@@ -59,6 +60,9 @@ export const pageQuery = graphql`
         datetime: date
         description
         toc
+      }
+      fields {
+        slug
       }
       excerpt(pruneLength: 140)
       tableOfContents

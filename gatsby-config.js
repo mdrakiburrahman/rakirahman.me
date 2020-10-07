@@ -1,7 +1,7 @@
 module.exports = {
   siteMetadata: {
     title: `Raki Rahman`,
-    description: `Raki Rahman is an Azure Solution Architect`,
+    description: `Raki Rahman | Big Data & AI`,
     author: `Raki Rahman`,
     siteUrl:
       process.env.DEV_ENV === 1
