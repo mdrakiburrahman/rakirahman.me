@@ -31,8 +31,7 @@ const About = _ => {
           </p>
           <h2>Why write a blog?</h2>
           <p>
-            My{" "}
-            <InlinePageLink to="/blog/welcome">first blog post</InlinePageLink>{" "}
+            My <InlinePageLink to="/welcome">first blog post</InlinePageLink>{" "}
             explained it. I'd be happy if you read it :)
           </p>
           <h2>What else?</h2>
