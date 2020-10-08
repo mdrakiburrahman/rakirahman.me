@@ -1,7 +1,7 @@
 import React from "react"
 import Layout from "../components/layout"
 import SEO from "../components/seo"
-import { ExtLink, InlinePageLink } from "../components/atoms"
+import { ExtLink } from "../components/atoms"
 import Contact from "../components/contact"
 
 const About = _ => {
@@ -10,51 +10,77 @@ const About = _ => {
       <SEO title="About" />
       <div className="container">
         <article className="prose">
-          <h2>About Me</h2>
+          <h2>
+            Hi{" "}
+            <span role="img" aria-label="Wave">
+              👋🏼
+            </span>{" "}
+            - I'm Raki Rahman
+          </h2>
           <p>
-            I'm Raki Rahman, I work full-time as a game programmer at{" "}
-            <ExtLink link="https://secret6.com/">Secret 6, Inc</ExtLink>. In my
-            free time, I study front-end development with React. My goal is to
-            write useful apps and contribute to open source projects while
-            working a full-time job.
+            I'm a <strong>Data & AI</strong> Cloud Solutions Architect at{" "}
+            <ExtLink link="https://www.microsoft.com/en-ca">
+              <strong>Microsoft</strong>
+            </ExtLink>{" "}
+            - currently based out of Toronto, Canada.
           </p>
-          <h2>Why make this website?</h2>
           <p>
-            I made this website to learn what actually goes into web
-            development. From planning, design, development, launch, and
-            maintenance. For sure there are other things that I have yet to
-            encounter, and I’m ready to learn them.
+            {" "}
+            After graduating with Honours Distinction from University of
+            Toronto's rigorous{" "}
+            <ExtLink link="https://engsci.utoronto.ca/explore_our_program/about_engsci/">
+              <strong>EngSci</strong>
+            </ExtLink>{" "}
+            program as an <strong>Aerospace Engineer</strong>, I've worked at
+            leading Technology Consulting firms -{" "}
+            <ExtLink link="https://www.accenture.com/ca-en">Accenture</ExtLink>{" "}
+            and <ExtLink link="https://www.slalom.com/home">Slalom</ExtLink> -
+            to lead Azure Cloud Transformations across some of the largest
+            Enterprise Clients in North America.
+          </p>
+          <h2>Why Data?</h2>
+          <p>I've been working with Computers for as long as I can remember.</p>
+          <p>
+            Since I was 5 years old, I grew up building and fixing computers as
+            a hobby. As I learned to code, this hobby developed into a deep,
+            self-taught expertise of how computer hardware interacts with the
+            hypervisor layer to solve real-life problems. Coupled with the
+            practically infinite computing power of the Cloud for processing Big
+            Data, I realized the frontier of growth in this field is endless.
+            Applied correctly, we have the opportunity here to completely shape
+            the world for the better.
           </p>
           <p>
-            This also serves a motivation for me to continue making projects
-            because now I finally have a place to showcase them.
+            Plus I get to build a pretty entertaining career out of it too{" "}
+            <span role="img" aria-label="Laugh">
+              😄
+            </span>
+            .
           </p>
-          <h2>Why write a blog?</h2>
+          <h2>Why make this blog?</h2>
           <p>
-            My{" "}
-            <InlinePageLink to="/hello-world">first blog post</InlinePageLink>{" "}
-            explained it. I'd be happy if you read it :)
+            Nothing gives me more joy than taking a seemingly{" "}
+            <em>"difficult"</em> concept or problem and breaking it down to form
+            a simple, elegant solution.
           </p>
-          <h2>What else?</h2>
           <p>
-            When I’m not programming, I endlessly browse Reddit (
-            <ExtLink link="https://www.reddit.com/r/gamedev/">
-              /r/gamedev
-            </ExtLink>
-            ,{" "}
-            <ExtLink link="https://www.reddit.com/r/webdev/">/r/webdev</ExtLink>
-            ,{" "}
-            <ExtLink link="https://www.reddit.com/r/animalsbeingderps/">
-              /r/animalsbeingderps
-            </ExtLink>
-            ). I also love watching{" "}
-            <ExtLink link="https://letterboxd.com/jeffjadulco/">movies</ExtLink>{" "}
-            and listening to{" "}
-            <ExtLink link="https://open.spotify.com/user/jeffjads">
-              awesome music
-            </ExtLink>
-            . You can catch me playing games sometimes, I play as xKore, xKored,
-            or xKoreddd.
+            I immensely enjoyed writing a few technical blog posts on LinkedIn,
+            before quickly realizing the platform is pretty limiting as far as
+            how creative you can get with presenting your content. I briefly
+            tried WordPress too, and found the engine to be way too clunky (and
+            expensive to host).
+          </p>
+          <p>
+            To follow the pros: I decided to learn the{" "}
+            <ExtLink link="https://www.javascript.com/">Javascript</ExtLink>{" "}
+            framework - primarily{" "}
+            <ExtLink link="https://reactjs.org/">React</ExtLink>, and{" "}
+            <ExtLink link="https://graphql.org/">GraphQL</ExtLink> - and make
+            this blog as a fun side project.
+          </p>
+          <p>
+            So basically, this blog is a channel for me to keep my coding skills
+            from getting rusty, while also giving back to the Data community!
           </p>
         </article>
       </div>
