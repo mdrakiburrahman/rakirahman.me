@@ -1,40 +1,94 @@
 ---
-title: How to Dark Mode in React and Tailwind CSS
-date: 2020-07-25
+title: Post Title
+date: 1900-01-01
 published: true
-tags: ["gatsby", "css"]
-description: Add dark mode using CSS variables and Context API
+tags: ["tag1", "tag2"]
+description: Short & Succint description of post
 toc: true
 seoImage: "dark-mode-react-tailwind.png"
 ---
 
 import { Callout } from "../../src/components/atoms.js"
 
-Dark mode is the first feature I added in my website. I really didn't know how to do it at first, especially I'm using Tailwind for my styling. I'm sure there are plugins available to use but I want to implement it myself in order to learn more about React and CSS.
+Lorem ipsum dolor sit amet, consectetur adipiscing elit. Curabitur ultrices at quam sit amet luctus. Donec convallis lectus lectus, et tincidunt mauris egestas ac. Pellentesque quis dapibus tortor.
 
-Good thing I came across this beautiful article by Josh Comeau: [The Quest for the Perfect Dark Mode](https://joshwcomeau.com/gatsby/dark-mode/). Two things became clear to me: **CSS variables** and **prefers-color-scheme media query**.
+This is a hyperlink: [Hyperlink Text](https://fakelink.com).
+
+Bold text: **CSS variables** and also italic text: _prefers-color-scheme media query_.
+
+Strikethrough: ~~strikethrough~~
 
 In this post, I will walk you through my process on how to implement dark mode in a Gatsby and Tailwind CSS project.
 
 <Callout>
 
-💡 This tutorial assumes that you have a basic understanding of CSS variables and React's Context API.
+💡 Heads up - this is a highlighted item!
 
-🧾 This project uses Tailwind, follow their [documentation](https://tailwindcss.com/docs/installation) on how to install and setup Tailwind.
+🧾 We can add [links](https://tailwindcss.com/docs/installation) as well
 
-🚀 You can find the source in [GitHub](https://github.com/jeffjadulco/dark-mode-react-tailwind) and the demo [here](https://awesome-heyrovsky-f51f39.netlify.app/).
+🚀 Another one!
 
 </Callout>
 
-## Adding our CSS variables
+## This is a header
 
-First, let's declare all our css variables in our main css file. If you don't know which file it is, it's where you put the tailwind imports.
+### This is a sub-header
 
-In my website I tried to stick with five colors: _primary_, _secondary_, and _accent_, for both background and texts. This will differ based on your design, but in my case, I already knew what colors I needed because I designed my website in Figma beforehand.
+And an ordered list:
 
-![color palette](images/palette.png)
+1. First ordered list item
+2. Another item
+3. We can `highlight` text
 
-Next, add `.light` and `.dark` CSS classes and assign the colors for each variables. Then use the `@apply` directive in the root selector to apply a default theme for your page.
+<Callout>
+
+❗ This is important!
+
+</Callout>
+
+Inline-style logo:
+![alt text](https://github.com/adam-p/markdown-here/raw/master/src/common/images/icon48.png "Logo Title Text 1")
+
+## Some code
+
+```javascript
+var s = "JavaScript syntax highlighting"
+alert(s)
+```
+
+```python
+s = "Python syntax highlighting"
+print s
+```
+
+```sql
+SELECT * FROM sometable
+```
+
+```csharp
+static async Task Main()
+{
+    var builder = new HostBuilder();
+#if DEBUG
+    builder.UseEnvironment("development");
+#endif
+    builder.ConfigureWebJobs(b =>
+    {
+        b.AddAzureStorageCoreServices();
+        b.AddAzureStorage();
+
+    });
+    builder.ConfigureLogging((context, b) =>
+    {
+        b.AddConsole();
+    });
+    var host = builder.Build();
+    using (host)
+    {
+        await host.RunAsync();
+    }
+}
+```
 
 ```css
 /* index.css */
@@ -64,10 +118,6 @@ Next, add `.light` and `.dark` CSS classes and assign the colors for each variab
 @import "tailwindcss/utilities";
 ```
 
-## Extending Tailwind CSS
-
-In order to use the css variables we created, we must extend the tailwind configuration.
-
 ```jsx
 // tailwind.config.js
 
@@ -88,12 +138,51 @@ module.exports = {
 }
 ```
 
-<!--
-<Callout>
-  ☝ Remember to put them inside the `extend` object. If not, you'll be
-  overriding the default Tailwind configuration
-</Callout>
--->
+<Callout>☝ Remember to X, Y, Z!</Callout>
+
+## Making a table
+
+Colons can be used to align columns.
+
+| C1         | C2          | C3         |
+| ---------- | ----------- | ---------- |
+| `Column 1` | `Column 2`  | `Column 3` |
+| _Still_    | ~~renders~~ | **nicely** |
+| 1          | 2           | 3          |
+
+Three or more...
+
+---
+
+Hyphens
+
+---
+
+Asterisks
+
+---
+
+Underscores
+
+All generate lines.
+
+## YouTube Videos
+
+[![IMAGE ALT TEXT HERE](http://i3.ytimg.com/vi/8jeLCQ62vFk/maxresdefault.jpg)](https://www.youtube.com/watch?v=8jeLCQ62vFk)
+
+We used [this](http://www.get-youtube-thumbnail.com/) handy website to grab the thumbnail for us.
+
+First, let's declare all our css variables in our main css file. If you don't know which file it is, it's where you put the tailwind imports.
+
+In my website I tried to stick with five colors: _primary_, _secondary_, and _accent_, for both background and texts. This will differ based on your design, but in my case, I already knew what colors I needed because I designed my website in Figma beforehand.
+
+![color palette](images/palette.png)
+
+Next, add `.light` and `.dark` CSS classes and assign the colors for each variables. Then use the `@apply` directive in the root selector to apply a default theme for your page.
+
+## Extending Tailwind CSS
+
+In order to use the css variables we created, we must extend the tailwind configuration.
 
 These extensions will now be included in Tailwind classes
 
