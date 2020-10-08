@@ -85,6 +85,13 @@ module.exports = {
             },
           },
           {
+            resolve: "gatsby-remark-embed-youtube",
+            options: {
+              width: 800,
+              height: 400,
+            },
+          },
+          {
             resolve: "gatsby-remark-autolink-headers",
             options: {
               elements: [`h2`, `h3`],
