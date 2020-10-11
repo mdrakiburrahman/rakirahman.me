@@ -28,10 +28,6 @@ const IndexPage = () => {
         </div>
       </div>
       <Heading>Articles</Heading>
-      <p className="-mt-3 mb-12 text-tertiary">
-        Information presented are solely my own and do not express the views or
-        opinions of my employer.
-      </p>
       <PostList />
       <Contact />
     </Layout>
