@@ -15,8 +15,7 @@ const IndexPage = () => {
       <div className="mt-12 flex flex-col-reverse lg:flex-row items-center lg:justify-between lg:space-x-6">
         <h1 className="mt-12 lg:mt-0 max-w-3xl text-3xl sm:text-4xl text-primary font-bold sm:text-left md:text-center lg:text-left">
           Hi, I’m Raki.
-          <br className="mb-6 lg:hidden" /> I build Big Data & AI Solutions on
-          Microsoft Azure.
+          <br className="mb-6 lg:hidden" /> I build Data & AI Solutions on Azure.
         </h1>
         <div className="relative">
           <Blob />
