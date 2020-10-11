@@ -2,6 +2,10 @@
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](https://opensource.org/licenses/MIT)
 
+![build](https://github.com/mdrakiburrahman/gatsby-blog/workflows/Deploy%20Website%20to%20Azure%20Storage%20Account/badge.svg)
+
+![deploy](https://github.com/mdrakiburrahman/gatsby-blog/workflows/Purge%20Azure%20CDN/badge.svg)
+
 My personal blog running on Gatsby.
 
 ## Tech Stack
