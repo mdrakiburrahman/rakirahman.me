@@ -122,7 +122,7 @@ And a slightly more detailed view:
 
 _Elements of a Spark application are in blue boxes and an application’s tasks running inside task slots are labeled with a “T”. Unoccupied task slots are in white boxes._
 
-#### Responsibilities of the client process component
+**Responsibilities of the client process component**
 
 The **client** process starts the **driver** program. For example, the client process can be a `spark-submit` script for running applications, a spark-shell script, or a custom application using Spark API (like this Databricks **GUI** - **G**raphics **U**ser **I**nterface). The client process prepares the classpath and all configuration options for the Spark application. It also passes application arguments, if any, to the application running inside the **driver**.
 
@@ -178,7 +178,7 @@ _For example: the diagram below is showing 2 Core Executor nodes:_
   - Consequently, the **Driver** is assigning a **Partition** of data to each task - in this way each **Task** knows which piece of data it is to process.
   - Once started, each **Task** will fetch from the original data source (e.g. An Azure Storage Account) the **Partition** of data assigned to it.
 
-#### Example relating to Tasks, Slots and Cores
+**Example relating to Tasks, Slots and Cores**
 
 You can set the number of task slots to a value two or three times (**i.e. to a multiple of**) the number of CPU cores. Although these task slots are often referred to as CPU cores in Spark, they’re implemented as **threads** that work on a **physical core's thread** and don’t need to correspond to the number of physical CPU cores on the machine (since different CPU manufacturer's can architect multi-threaded chips differently).
 
@@ -193,7 +193,7 @@ In other words:
 
 ### Partitions
 
-#### DataFrames
+**DataFrames**
 
 A DataFrame is the most common Structured API and simply represents a **table of data with _rows_ and _columns_**. The
 list of columns and the types in those columns is called **the schema**.
@@ -212,7 +212,7 @@ Spark DataFrame can span **thousands of computers**.
 
 </Callout>
 
-#### Data Partitions
+**Data Partitions**
 
 In order to allow every executor to perform work in parallel, Spark breaks up the data into _chunks_, called **partitions**.
 ![Physical Partitions](images/data-partitions.png)
@@ -299,7 +299,7 @@ In other words:
 - A **stage** is uniquely identified by `id`. When a **stage** is created, **DAGScheduler** increments internal counter `nextStageId` to track the number of stage submissions.
 - Each **stage** contains a sequence of **narrow transformations** (see below) that can be completed without **shuffling** the entire data set, separated at _shuffle boundaries_, i.e. where shuffle occurs. **Stages** are thus a result of breaking the RDD at shuffle boundaries.
 
-#### An inefficient example of Stages
+**An inefficient example of Stages**
 
 - When we shuffle data, it creates what is known as a _stage boundary_.
 - Stage boundaries represent a **process bottleneck**.
@@ -362,9 +362,9 @@ A **task** is a unit of work that is sent to the executor. Each **stage** has so
 
 In the _example of Stages_ above, each **Step** is a **Task**.
 
-#### An efficient example of Stages
+**An efficient example of Stages**
 
-**Working Backwards**
+_Working Backwards\*_
 
 From the developer's perspective, we start with a read and conclude (in this case) with a write
 
@@ -592,7 +592,7 @@ Spark allows two distinct kinds of operations by the user: **transformations** a
 
 </Callout>
 
-#### Transformations - Overview
+**Transformations - Overview**
 
 **Transformations** are operations that will not be completed at the time you write and execute the code in a cell (they're **lazy**) - they will only get executed once you have called an **action**. An example of a transformation might be to convert an `integer` into a `float` or to `filter` a set of values: i.e. they can be procrastinated and don't have to be done _right now_ - but later after we have a full view of the task at hand.
 
@@ -604,7 +604,7 @@ Here's an analogy:
 
 In other words, by evaluating the full view of the **job** at hand, and by being **lazy** (not in the traditional sense - but in the smart way by **not eagerly** sorting everything by color for no reason), you were able to achieve the same goal in _15 minutes_ vs _65 minutes_ (clothes that fit are sorted by color in the closet, clothes that don' fit are in plastic bag).
 
-#### Actions - Overview
+**Actions - Overview**
 
 **Actions** are commands that are computed by Spark right at the time of their execution (they're **eager**). They consist of running all of the previous transformations in order to get back an actual result. An **action** is composed of one or more **jobs** which consists of **tasks** that will be executed by the **executor slots** in parallel - i.e. a **stage** - where possible.
 
@@ -616,7 +616,7 @@ Spark `pipelines` a computation as we can see in the image below. This means tha
 
 ![Example of a Spark Pipeline](images/pipelining-overview.png)
 
-#### Why is Laziness So Important?
+**Why is Laziness So Important?**
 
 It has a number of benefits:
 
@@ -691,7 +691,7 @@ Transformations have the following key characteristics:
 
 Regardless of language, transformations break down into two broad categories: **wide** and **narrow**.
 
-#### Narrow Transformations
+**Narrow Transformations**
 
 The data required to compute the records in a single partition reside in at most one partition of the parent RDD.
 
@@ -707,7 +707,7 @@ Examples include:
   style="height:300px"
 />
 
-#### Wide Transformations
+**Wide Transformations**
 
 The data required to compute the records in a single partition may reside in many partitions of the parent RDD.
 
@@ -732,17 +732,17 @@ Spark can run in:
 
 Although Spark runs on all of them, one might be more applicable for your environment and use cases. In this section, you’ll find the pros and cons of each cluster type.
 
-#### Spark local modes
+**Spark local modes**
 
 Spark local mode and Spark local cluster mode are special cases of a Spark standalone cluster running on a single machine. Because these cluster types are easy to set up and use, they’re convenient for quick tests, but they shouldn’t be used in a production environment.
 
 Furthermore, in these local modes, the workload isn’t distributed, and it creates the resource restrictions of a single machine and suboptimal performance. True high availability isn’t possible on a single machine, either.
 
-#### Spark standalone cluster
+**Spark standalone cluster**
 
 A Spark standalone cluster is a Spark-specific cluster. Because a standalone cluster is built specifically for Spark applications, it doesn’t support communication with an HDFS secured with Kerberos authentication protocol. If you need that kind of security, use YARN for running Spark.
 
-#### YARN cluster
+**YARN cluster**
 
 **YARN** is Hadoop’s resource manager and execution system. It’s also known as _MapReduce 2_ because it superseded the _MapReduce_ engine in _Hadoop 1_ that supported only MapReduce jobs.
 
@@ -754,7 +754,7 @@ Running Spark on YARN has several advantages:
 - It’s the only cluster type that supports **Kerberos-secured HDFS**.
 - Another advantage of YARN over the standalone cluster is that you don’t have to install Spark on every node in the cluster.
 
-#### Mesos cluster
+**Mesos cluster**
 
 **Mesos** is a scalable and fault-tolerant “distributed systems kernel” written in C++. Running Spark in a Mesos cluster also has its advantages. Unlike YARN, Mesos also supports C++ and Python applications, and unlike YARN and a standalone Spark cluster that only schedules memory, Mesos provides scheduling of other types of resources (for example, CPU, disk space and ports), although these additional resources aren’t used by Spark currently. Mesos has some additional options for job scheduling that other cluster types don’t have (for example, fine-grained mode).
 
