@@ -32,10 +32,7 @@ const About = _ => {
               <strong>EngSci</strong>
             </ExtLink>{" "}
             program as an <strong>Aerospace Engineer</strong>, I've worked at
-            leading Technology Consulting firms -{" "}
-            <ExtLink link="https://www.accenture.com/ca-en">Accenture</ExtLink>{" "}
-            and <ExtLink link="https://www.slalom.com/home">Slalom</ExtLink> -
-            to lead Azure Cloud Transformations across some of the largest
+            leading Technology Consulting firms in driving Azure Cloud Transformations across some of the largest
             Enterprise Clients in North America.
           </p>
           <h2>Why Data?</h2>

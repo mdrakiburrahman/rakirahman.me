@@ -1,0 +1,186 @@
+---
+title: Spark Certification Study Guide - Part 2 (Application)
+date: 2020-01-01
+published: false
+tags: ["Spark", "Databricks", "Python"]
+description: Part 2 of the Study Guide I created to pass the Spark Certification Exam
+toc: True
+seoImage: "og-spark-certification-study-guide-part-2.png"
+---
+
+import { Callout } from "../../src/components/atoms.js"
+import { ExtLink, InlinePageLink } from "../../src/components/atoms.js"
+
+<Callout>
+
+🥈 This is `Part 2` of the Study guide, focusing on Core Concepts.
+
+🥇 For `Part 1` (Core) - click <InlinePageLink to="/spark-certification-study-guide-part-1">here</InlinePageLink>
+
+</Callout>
+
+We now start diving deeper into code, and looking at applications of Spark to illustrate a handful of use cases.
+
+## SparkContext
+
+<Callout>
+  🎓 Candidates are expected to have a command of the following APIs:
+</Callout>
+
+### Overview
+
+Once the **driver** is started, it configures an instance of `SparkContext`. Your Spark context is already preconfigured and available as the variable `sc`. When running a standalone Spark application by submitting a jar file, or by using Spark API from another program, your Spark application starts and configures the Spark context (i.e. Databricks).
+
+<Callout>
+  💡 A Spark context comes with many useful methods for creating DataFrames,
+  loading data (e.g. `spark.read.format("csv")`), and is the main interface for
+  accessing Spark runtime.
+</Callout>
+
+There is usually one Spark context per JVM. Although the configuration
+option `spark.driver.allowMultipleContexts` exists, it’s misleading because
+usage of multiple Spark contexts is discouraged. This option is used only for
+Spark internal tests and we recommend you don’t use that option in your user
+programs. If you do, you may get unexpected results while running more than
+one Spark context in a single JVM.
+
+### `SparkContext` to control basic configuration settings such as `spark.sql.shuffle.partitions`
+
+- `spark.sql.shuffle.partitions`: Configures the number of partitions to use when shuffling data for joins or aggregations.
+- `spark.executor.memory`: Amount of memory to use per executor process, in the same format as JVM memory strings with a size unit suffix ("k", "m", "g" or "t") (e.g. 512m, 2g).
+- `spark.default.parallelism`: Default number of partitions in RDDs returned by transformations like `join`, `reduceByKey`, and `parallelize` when not set by user. Note that this is **ignored for DataFrames**, and we can use `df.repartition(numOfPartitions)` instead.
+
+Let's explore how to set the value of `spark.sql.shuffle.partitions` and `spark.executor.memory` using PySpark and SQL syntax.
+
+```python
+# Print the default values of shuffle partition and the executor memory
+print(spark.conf.get("spark.sql.shuffle.partitions"), ",", spark.conf.get("spark.executor.memory"))
+```
+
+```python
+# Set the number of shuffle partitions to 6
+spark.conf.set("spark.sql.shuffle.partitions", 6)
+# Set the memory of executors to 2 GB
+spark.conf.set("spark.executor.memory", "2g")
+# Print the values of the shuffle partition and the executor memory
+print(spark.conf.get("spark.sql.shuffle.partitions"), ",", spark.conf.get("spark.executor.memory"))
+```
+
+```sql
+SET spark.sql.shuffle.partitions = 200;
+SET spark.executor.memory = 7284m;
+```
+
+## SparkSession
+
+<Callout>🎓 Candidates are expected to know how to:</Callout>
+
+### Create a *DataFrame/Dataset* from a collection (e.g. `list` or `set`)
+
+```python
+# import relevant modules
+from pyspark.sql import *
+from pyspark.sql.types import *
+from pyspark.sql.functions import *
+from pyspark import *
+from pyspark import StorageLevel
+import sys
+```
+
+**Example: Create DataFrame from list with DataType specified**
+
+```python
+list_df = spark.createDataFrame([1, 2, 3, 4], IntegerType())
+display(list_df)
+```
+
+**Example: Create DataFrame from `Row`**
+
+_class_ `pyspark.sql.Row`
+
+A row in `DataFrame`. The fields in it can be accessed:
+
+- like attributes (`row.key`)
+- like dictionary values (`row[key]`)
+
+In this scenario we have two tables to be joined `employee` and `department`. Both tables contains only a few records, but we need to join them to get to know the department of each employee. So, we join them using Spark DataFrames like this:
+
+```python
+# Create Example Data - Departments and Employees
+
+# Create the Employees
+Employee = Row("name") # Define the Row `Employee' with one column/key
+employee1 = Employee('Bob') # Define against the Row 'Employee'
+employee2 = Employee('Sam') # Define against the Row 'Employee'
+
+# Create the Departments
+Department = Row("name", "department") # Define the Row `Department' with two columns/keys
+department1 = Department('Bob', 'Accounts') # Define against the Row 'Department'
+department2 = Department('Alice', 'Sales') # Define against the Row 'Department'
+department3 = Department('Sam', 'HR') # Define against the Row 'Department'
+
+# Create DataFrames from rows
+employeeDF = spark.createDataFrame([employee1, employee2])
+departmentDF = spark.createDataFrame([department1, department2, department3])
+
+# Join employeeDF to departmentDF on "name"
+display(employeeDF.join(departmentDF, "name"))
+```
+
+**Example: Create DataFrame from `Row`, with Schema specified**
+
+`createDataFrame`(_data, schema=None, samplingRatio=None, verifySchema=True_)
+
+Creates a `DataFrame` from an `RDD`, a `list` or a `pandas.DataFrame`.
+When `schema` is a list of column names, the type of each column will be inferred from `data`.
+When `schema` is `None`, it will try to infer the schema (column names and types) from data, which should be an RDD of `Row`, or `namedtuple`, or `dict`.
+
+```python
+schema = StructType([
+  StructField("letter", StringType(), True),
+  StructField("position", IntegerType(), True)])
+
+df = spark.createDataFrame([('A', 0),('B', 1),('C', 2)], schema)
+display(df)
+```
+
+**Example: Create DataFrame from a list of `Rows`**
+
+```python
+# Create Example Data - Departments and Employees
+
+# Create the Departments
+Department = Row("id", "name")
+department1 = Department('123456', 'Computer Science')
+department2 = Department('789012', 'Mechanical Engineering')
+department3 = Department('345678', 'Theater and Drama')
+department4 = Department('901234', 'Indoor Recreation')
+department5 = Department('000000', 'All Students')
+
+# Create the Employees
+Employee = Row("firstName", "lastName", "email", "salary")
+employee1 = Employee('michael', 'armbrust', 'no-reply@berkeley.edu', 100000)
+employee2 = Employee('xiangrui', 'meng', 'no-reply@stanford.edu', 120000)
+employee3 = Employee('matei', None, 'no-reply@waterloo.edu', 140000)
+employee4 = Employee(None, 'wendell', 'no-reply@berkeley.edu', 160000)
+employee5 = Employee('michael', 'jackson', 'no-reply@neverla.nd', 80000)
+
+# Create the DepartmentWithEmployees instances from Departments and Employees
+DepartmentWithEmployees = Row("department", "employees")
+departmentWithEmployees1 = DepartmentWithEmployees(department1, [employee1, employee2])
+departmentWithEmployees2 = DepartmentWithEmployees(department2, [employee3, employee4])
+departmentWithEmployees3 = DepartmentWithEmployees(department3, [employee5, employee4])
+departmentWithEmployees4 = DepartmentWithEmployees(department4, [employee2, employee3])
+departmentWithEmployees5 = DepartmentWithEmployees(department5, [employee1, employee2, employee3, employee4, employee5])
+
+print(department1)
+print(employee2)
+print(departmentWithEmployees1.employees[0].email)
+```
+
+```python
+departmentsWithEmployeesSeq1 = [departmentWithEmployees1, departmentWithEmployees2, departmentWithEmployees3, departmentWithEmployees4, departmentWithEmployees5]
+df1 = spark.createDataFrame(departmentsWithEmployeesSeq1)
+
+display(df1)
+```
