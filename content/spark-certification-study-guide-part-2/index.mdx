@@ -33,7 +33,7 @@ We now start diving deeper into code, and looking at specific applications of Sp
   🎓 Candidates are expected to have a command of the following APIs:
 </Callout>
 
-### Overview
+**Overview**
 
 Once the **driver** is started, it configures an instance of `SparkContext`. Your Spark context is already preconfigured and available as the variable `sc`. When running a standalone Spark application by submitting a jar file, or by using Spark API from another program, your Spark application starts and configures the Spark context (i.e. Databricks).
 
@@ -50,7 +50,7 @@ Spark internal tests and we recommend you don’t use that option in your user
 programs. If you do, you may get unexpected results while running more than
 one Spark context in a single JVM.
 
-### `SparkContext` to control basic configuration settings such as `spark.sql.shuffle.partitions`
+**`SparkContext` to control basic configuration settings such as `spark.sql.shuffle.partitions`**
 
 - `spark.sql.shuffle.partitions`: Configures the number of partitions to use when shuffling data for joins or aggregations.
 - `spark.executor.memory`: Amount of memory to use per executor process, in the same format as JVM memory strings with a size unit suffix ("k", "m", "g" or "t") (e.g. 512m, 2g).
@@ -81,7 +81,7 @@ SET spark.executor.memory = 7284m;
 
 <Callout>🎓 Candidates are expected to know how to:</Callout>
 
-### Create a *DataFrame/Dataset* from a collection (e.g. `list` or `set`)
+**Create a *DataFrame/Dataset* from a collection (e.g. `list` or `set`)**
 
 ```python
 # import relevant modules
@@ -191,7 +191,7 @@ df1 = spark.createDataFrame(departmentsWithEmployeesSeq1)
 display(df1)
 ```
 
-### Create a *DataFrame* for a range of numbers
+**Create a *DataFrame* for a range of numbers**
 
 `range`(_start, end=None, step=1, numPartitions=None_)
 
@@ -220,9 +220,9 @@ df = spark.range(5).toDF("number")
 display(df)
 ```
 
-### Access the *DataFrameReaders*
+**Access the DataFrameReaders**
 
-**DataFrameReader — Loading Data From External Data Sources**
+**_DataFrameReader — Loading Data From External Data Sources_**
 
 class `pyspark.sql.DataFrameReader`(spark)
 
@@ -266,7 +266,7 @@ df = spark.read.csv("/mnt/GoFast/bronze/auto-mpg.csv", header=False, inferSchema
 display(df)
 ```
 
-### Register User Defined Functions (UDFs).
+**Register User Defined Functions (UDFs)**
 
 If we have a `function` that can use values from a row in the `dataframe` as input, then we can map it to the entire dataframe. The only difference is that with PySpark UDFs we have to specify the `output` data type.
 

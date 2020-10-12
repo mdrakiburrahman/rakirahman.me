@@ -80,7 +80,7 @@ Note that I used inspiration from the [Spark Code Review guide](https://databric
   components and their relationship to each other:
 </Callout>
 
-### Spark Basic Architecture
+**Spark Basic Architecture**
 
 A _cluster_, or group of machines, pools the resources of many machines together allowing us to use all the cumulative
 resources as if they were one. Now a group of machines sitting somewhere alone is not powerful, you need a framework to coordinate
@@ -91,13 +91,13 @@ The cluster of machines that Spark will leverage to execute tasks will be manage
 Standalone cluster manager, _**YARN**_ - **Y**et **A**nother **R**esource **N**egotiator, or [_**Mesos**_](http://mesos.apache.org/). We then submit Spark Applications to these cluster managers which will
 grant resources to our application so that we can complete our work.
 
-### Spark Applications
+**Spark Applications**
 
 ![Spark Basic Architecture](images/jvm-process.png)
 
 Spark Applications consist of a **driver** process and a set of **executor** processes. In the illustration we see above, our driver is on the left and four executors on the right.
 
-### What is a JVM?
+**What is a JVM?**
 
 _The JVM manages system memory and provides a portable execution environment for Java-based applications_
 
@@ -112,7 +112,7 @@ The JVM has **two primary functions**:
 1.  To allow Java programs to run on any device or operating system (known as the _"Write once, run anywhere"_ principle)
 2.  To manage and optimize program memory
 
-### JVM view of the Spark Cluster: _Drivers, Executors, Slots & Tasks_
+**JVM view of the Spark Cluster: _Drivers, Executors, Slots & Tasks_**
 
 The Spark runtime architecture leverages JVMs:
 ![Spark Physical Cluster & Slots](images/spark-jvm-high-level.png)
@@ -126,7 +126,7 @@ _Elements of a Spark application are in blue boxes and an application’s tasks 
 
 The **client** process starts the **driver** program. For example, the client process can be a `spark-submit` script for running applications, a spark-shell script, or a custom application using Spark API (like this Databricks **GUI** - **G**raphics **U**ser **I**nterface). The client process prepares the classpath and all configuration options for the Spark application. It also passes application arguments, if any, to the application running inside the **driver**.
 
-### Driver
+**Driver**
 
 The **driver** orchestrates and monitors execution of a Spark application. There’s always **one driver per Spark application**. You can think of the driver as a wrapper around the application.
 
@@ -150,7 +150,7 @@ maintains all relevant information during the lifetime of the application.
   - The first level of parallelization is the **Executor** - a JVM running on a node, typically, **one executor instance per node**.
   - The second level of parallelization is the **Slot** - the number of which is **determined by the number of cores and CPUs of each node/executor**.
 
-### Executor
+**Executor**
 
 The **executors** are responsible for actually executing the work that the **driver** assigns them. This means, each
 executor is responsible for only two things:
@@ -158,7 +158,7 @@ executor is responsible for only two things:
 1. Executing code assigned to it by the driver
 2. Reporting the state of the computation, on that executor, back to the driver node
 
-### Cores/Slots/Threads
+**Cores/Slots/Threads**
 
 - Each **Executor** has a number of **Slots** to which parallelized **Tasks** can be assigned to it by the **Driver**.
   - So for example:
@@ -191,9 +191,9 @@ In other words:
   - _Say we don't do this_, even with a 100 executor cluster, the entire burden would go to 1 executor, and the other 99 will be sitting idle - i.e. slow execution.
   - _Or say, we instead foolishly assign **49** Tasks and **49** Partitions_, the first pass would execute **48** Tasks in parallel across the executors cores (say in **10 minutes**), then that **1** remaining Task in the next pass will execute on **1** core for another **10 minutes**, while the rest of our **47** cores are sitting idle - meaning the whole job will take double the time at **20 minutes**. This is obviously an inefficient use of our available resources, and could rather be fixed by setting the number of tasks/partitions to a multiple of the number of cores we have (in this setup - 48, 96 etc).
 
-### Partitions
+**Partitions**
 
-**DataFrames**
+**_DataFrames_**
 
 A DataFrame is the most common Structured API and simply represents a **table of data with _rows_ and _columns_**. The
 list of columns and the types in those columns is called **the schema**.
@@ -212,7 +212,7 @@ Spark DataFrame can span **thousands of computers**.
 
 </Callout>
 
-**Data Partitions**
+**_Data Partitions_**
 
 In order to allow every executor to perform work in parallel, Spark breaks up the data into _chunks_, called **partitions**.
 ![Physical Partitions](images/data-partitions.png)
@@ -256,7 +256,7 @@ Spark **application execution**, alongside **drivers** and **executors**, also i
 
 ![Spark Execution Model](https://docs.cloudera.com/documentation/enterprise/5-6-x/images/spark-tuning-f1.png)
 
-### Overview of DAGSchedular
+**Overview of DAGSchedular**
 
 **DAGScheduler** is the scheduling layer of Apache Spark that implements stage-oriented scheduling. It transforms a _logical_ execution plan to a _physical_ execution plan (using stages).
 
