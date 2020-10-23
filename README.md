@@ -20,10 +20,9 @@ My personal blog running on Gatsby.
 
 1. Clone this repository.
 2. Install Gatsby with `npm install -g gatsby-cli`.
-3. `cd` into the root directory of the cloned repository and run `npm install`.
-4. Install all site dependencies with `npm install`.
-5. Run `gatsby develop` to build and start a local development server.
-6. View the site at `localhost:8000`.
+3. `cd` into the root directory of the cloned repository and run `npm install` to install all site dependencies.
+4. Run `gatsby develop` to build and start a local development server.
+5. View the site at `localhost:8000`.
 
 
 ## CI/CD
