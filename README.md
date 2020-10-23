@@ -25,6 +25,14 @@ My personal blog running on Gatsby.
 5. Run `gatsby develop` to build and start a local development server.
 6. View the site at `localhost:8000`.
 
+
+## CI/CD
+
+Pushing code into this repository triggers two GitHub Actions:
+
+1. `Purge Azure CDN`: which clears the Azure CDN cached content via purging
+2. `Deploy Website to Azure Storage Account`: which builds the static site with `gatsby build`, and uploads content to an Azure Storage Account - where the site is being hosted.
+
 ## License
 
 This project is open source and available under the [MIT License](LICENSE)
