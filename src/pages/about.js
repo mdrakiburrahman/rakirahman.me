@@ -28,12 +28,13 @@ const About = _ => {
             {" "}
             After graduating with Honours Distinction from University of
             Toronto's rigorous{" "}
-            <ExtLink link="https://engsci.utoronto.ca/explore_our_program/about_engsci/">
+            <ExtLink link="https://engsci.utoronto.ca/program/what-is-engsci/">
               <strong>EngSci</strong>
             </ExtLink>{" "}
             program as an <strong>Aerospace Engineer</strong>, I've worked at
-            leading Technology Consulting firms in driving Azure Cloud Transformations across some of the largest
-            Enterprise Clients in North America.
+            leading Technology Consulting firms in driving Azure Cloud
+            Transformations across some of the largest Enterprise Clients in
+            North America.
           </p>
           <h2>Why Data?</h2>
           <p>I've been working with Computers for as long as I can remember.</p>
