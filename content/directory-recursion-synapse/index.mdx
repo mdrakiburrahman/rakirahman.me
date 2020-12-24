@@ -11,7 +11,7 @@ seoImage: "og-directory-recursion-synapse.png"
 import { Callout } from "../../src/components/atoms.js"
 import { ExtLink, InlinePageLink } from "../../src/components/atoms.js"
 
-By default, [`mssparkutils`](https://docs.microsoft.com/en-us/azure/synapse-analytics/spark/microsoft-spark-utilities?pivots=programming-language-python#list-files) file listing capabilities doesn't have a recursion flag - probably by design.
+By default, [`mssparkutils`](https://docs.microsoft.com/en-us/azure/synapse-analytics/spark/microsoft-spark-utilities?pivots=programming-language-python#list-files) file listing capabilities don't come with a recursion flag - probably by design.
 
 One of the gotchas I ran into when going through a recent [OpenHack](https://openhack.microsoft.com/) was manually clicking through a Data Lake with a hefty number of file sources and partitions. I was in my Synapse notebook crunched for time, wishing there was a way to recursively list all files from a root directory, to figure out what DataFrames I needed to import, what the schema looks like, what the transformation pipeline is going to look like etc.
 
