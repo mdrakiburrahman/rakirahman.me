@@ -83,7 +83,7 @@ JMESPath is a nifty library that makes it a breeze to navigate [(query](https://
 
 #### PyApacheAtlas: [link](https://github.com/wjohnson/pyapacheatlas)
 
-PyApacheAtlas is a Python library in development by a fellow Microsoft CSA - [Will Johnson](https://www.linkedin.com/in/willjjohnson/). Essentially, the library presents a programmatic wrapper around the Atlas API, accessible through an [`AtlasClient`](https://github.com/wjohnson/pyapacheatlas/blob/master/pyapacheatlas/core/client.py) object.
+PyApacheAtlas is a Python library in development by a fellow Microsoft CSA - [Will Johnson](https://github.com/wjohnson). Essentially, the library presents a programmatic wrapper around the Atlas API, accessible through an [`AtlasClient`](https://github.com/wjohnson/pyapacheatlas/blob/master/pyapacheatlas/core/client.py) object.
 
 We use a combination of the Purview REST API (via JMESPath), and the `AtlasClient` object to achieve getting the full list of Assets from Purview, and iterating to populate the corresponding metadata per Asset.
 
@@ -217,7 +217,7 @@ def get_adls_asset_schema(assets_all: dict, asset: str, atlas_client: str):
     return asset_schema
 ```
 
-Note a takeaways from here:
+Note a couple takeaways from here:
 
 - JMESPath is awesome
 - The Atlas API response is slightly different based on the filetype (e.g. `json` vs `csv`), hence we deal with it case-by-case.
