@@ -29,8 +29,8 @@ Amongst many other things, we can leverage this capability to programmatically a
 
 In simple words, the idea is:
 
-- **Purview** gives us intelligent metadata: _"these are the files on your Data Lake and the underlying columns that contain sensitive data"_
-- And in return, we can say to **Synapse**: _"Go ahead and use Spark Pools to drop, obfuscate, deanonymize or otherwise deal with those columns"_
+- **Purview** gives us intelligent metadata: _"These are the files on your Data Lake and the underlying columns that contain sensitive data"_
+- And in return, we can say to **Synapse**: _"Go ahead and use Spark Pools to drop, obfuscate, anonymize or otherwise deal with those columns"_
 
 The first step to achieving this is to programmatically enable Synapse Spark Pools to retrieve the metadata from Purview (in this case, the schema and sensitivity labels).
 
