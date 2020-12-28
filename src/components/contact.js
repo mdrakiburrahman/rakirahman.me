@@ -12,10 +12,14 @@ export const Contact = () => {
           </span>
         </h1>
         <p className="px-4 mt-4 text-center text-secondary">
-          Feel free to email me about anything - I’ll reply as soon as I can!
+          If you have any questions or suggestions, feel free to open an issue
+          on GitHub!
         </p>
         <div className="mx-auto  pt-10 flex justify-center">
-          <Button width="widest" link="mailto:mdrakiburrahman@gmail.com">
+          <Button
+            width="widest"
+            link="https://github.com/mdrakiburrahman/rakirahman.me/issues/new"
+          >
             <span className=" text-2xl font-semibold text-on-accent">
               Say hello
             </span>
