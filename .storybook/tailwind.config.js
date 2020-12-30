@@ -4,6 +4,7 @@ module.exports = {
     extend: {
       fontFamily: {
         sans: [
+          "Nunito",
           "Inter",
           "BlinkMacSystemFont",
           '"Segoe UI"',

@@ -22,6 +22,7 @@ module.exports = {
       },
       fontFamily: {
         sans: [
+          "Nunito",
           "Inter",
           "BlinkMacSystemFont",
           '"Segoe UI"',
