@@ -145,27 +145,60 @@ def atlas_auth(tenant_id: str, client_id: str, client_secret: str, atlas_endpoin
 
 Once we have our proof of authentication (`access_token` and `client`) - we're ready to programmatically access the Purview REST API.
 
-We use `get_all_adls_assets` to retrieve all scanned assets from our Data Lake from the Purview REST API:
+We use `get_all_adls_assets` to recursively retrieve all scanned assets from our Data Lake from the Purview REST API.
+
+<Callout>
+
+🌲 **Note**: this function intentionally traverses the tree structure until only assets remain (i.e. no folders are returned, only files).
+
+</Callout>
+
+The API parameter used to determine whether we hit the end is `isLeaf`:
 
 ```Python
-def get_all_adls_assets(data_catalog_name: str, storage_account: str, container: str, azuread_access_token: str):
+def get_all_adls_assets(path: str, data_catalog_name: str, azuread_access_token: str, max_depth=1):
     """
-    Retrieves all scanned assets for the specified Storage Account Container
+    Retrieves all scanned assets for the specified ADLS Storage Account Container.
+
     """
+
+    # List all files in path
     url = f"https://{data_catalog_name}.catalog.purview.azure.com/api/browse"
+
+    headers = {
+            'Authorization': f'Bearer {azuread_access_token}',
+            'Content-Type': 'application/json'
+            }
 
     payload="""{"limit": 100,
                 "offset": null,
-                "path": "/azure_storage_account#%s.core.windows.net/azure_datalake_gen2_service#%s.dfs.core.windows.net/azure_datalake_gen2_filesystem#%s"
-                }""" % (storage_account, storage_account, container)
-    headers = {
-        'Authorization': f'Bearer {azuread_access_token}',
-        'Content-Type': 'application/json'
-    }
-    response = requests.request("POST", url, headers=headers, data=payload)
-    assets_all = json.loads(response.text)
+                "path": "%s"
+                }""" % (path)
 
-    return assets_all
+    response = requests.request("POST", url, headers=headers, data=payload)
+
+    li = json.loads(response.text)
+
+    # Return all files
+    for x in jmespath.search("value", li):
+        if jmespath.search("isLeaf", x):
+            yield x
+
+    # If the max_depth has not been reached, start
+    # listing files and folders in subdirectories
+    if max_depth > 1:
+        for x in jmespath.search("value", li):
+            if jmespath.search("isLeaf", x):
+                continue
+            for y in get_all_adls_assets(jmespath.search("path", x), data_catalog_name, azuread_access_token, max_depth - 1):
+                yield y
+
+    # If max_depth has been reached,
+    # return the folders
+    else:
+        for x in jmespath.search("value", li):
+            if jmespath.search("!isLeaf", x):
+                yield x
 ```
 
 Note a couple points regarding this function:
@@ -178,6 +211,8 @@ Note a couple points regarding this function:
 
   This parameter can be increased for larger implementations up until we hit the upper limit defined by the API - at which point we need to implement pagination best practices into our script logic (no different than other Azure/non-Azure APIs).
 
+- For deeper folder structures, `max_depth` can be increased as desired
+
 Once we have a list of all our assets, we can iterate through the list and retrieve the Schema and Classification from Purview inline:
 
 ```python
@@ -187,12 +222,12 @@ files_df['schema'] = files_df.apply(lambda row: get_adls_asset_schema(assets_all
 Where we use the `client` object we defined earlier to call `get_adls_asset_schema`:
 
 ```python
-def get_adls_asset_schema(assets_all: dict, asset: str, atlas_client: str):
+def get_adls_asset_schema(assets_all: list, asset: str, atlas_client: str):
     """
     Returns the asset schema and classifications from Purview
     """
     # Filter response for our asset of interest
-    assets_list = jmespath.search(f"value[?name=='{asset}']", assets_all)
+    assets_list = list(filter(lambda i: i['name'] == asset, assets_all))
 
     # Find the guid for the asset to retrieve the tabular_schema or attachedSchema (based on the asset type)
     match_id = ""
