@@ -13,7 +13,7 @@ import { ExtLink, InlinePageLink } from "../../src/components/atoms.js"
 
 <Callout>
 
-💡 In this article - we explore a PySpark script written in Synapse with some reusable functions to programmatically access Purview's REST API.
+💡 In this article - we explore a Python script written in Synapse with some reusable functions to programmatically access Purview's REST API.
 
 </Callout>
 
@@ -38,7 +38,9 @@ In this article, I wanted to share some of the initial tools/techniques to enabl
 
 <Callout>
 
-❗ These techniques/tools are from some initial exploration of the Purview REST API - shared here for exploratory/education purposes. For official Microsoft content - please refer to the [Purview Documentation](https://docs.microsoft.com/en-us/azure/purview/).
+❗ These techniques/tools are from some initial exploration of the Purview REST API - shared here as a **starting point** for exploratory/education purposes using common Python libraries.
+
+For official Microsoft content - please refer to the [Purview Documentation](https://docs.microsoft.com/en-us/azure/purview/).
 
 </Callout>
 
@@ -99,7 +101,9 @@ We use a combination of the Purview REST API (via JMESPath), and the `AtlasClien
 
 📦 `get-schema-purview.py` script is available on GitHub [here](https://gist.github.com/mdrakiburrahman/026b4875a65879ee3076018374c1d998).
 
-💡 We'll also be recursing through our Data Lake to retrieve file names using the techniques outlined in [this article](../directory-recursion-synapse/).
+❗ This script applies the simple recursion techniques I outlined in [this article](../directory-recursion-synapse/) against our Data Lake and Purview API to retrieve asset names and schemas.
+
+While this is fine for exploration, due diligence (i.e. implementing a more optimal, piecemeal approach) should be applied for Production implementations on a case-by-case basis to avoid long-running jobs - [see here](https://www.cs.cornell.edu/courses/cs3110/2012sp/lectures/lec20-master/lec20.html).
 
 </Callout>
 
