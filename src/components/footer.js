@@ -10,7 +10,7 @@ const Footer = _ => {
               className="text-xs tracking-wider self-center md:self-end"
               aria-label="Copyright"
             >
-              © 2020 Raki Rahman. All Rights Reserved.
+              © {`${new Date().getFullYear()} `} Raki Rahman.
             </span>
             <div className="flex flex-row items-center space-x-4 justify-center md:justify-end">
               <span>
