@@ -13,7 +13,7 @@ module.exports = {
     {
       resolve: `gatsby-plugin-google-analytics`,
       options: {
-        trackingId: 'UA-180300326-1',
+        trackingId: "UA-180300326-1",
       },
     },
     `gatsby-plugin-react-helmet`,
@@ -102,6 +102,81 @@ module.exports = {
           {
             resolve: "gatsby-remark-prismjs",
             options: {},
+          },
+        ],
+      },
+    },
+    {
+      resolve: `gatsby-plugin-feed-mdx`,
+      options: {
+        query: `
+          {
+            site {
+              siteMetadata {
+                title
+                description
+                author
+                siteUrl
+                site_url: siteUrl
+              }
+            }
+          }
+        `,
+        feeds: [
+          {
+            serialize: ({ query: { site, allMdx } }) => {
+              const {
+                siteMetadata: { siteUrl },
+              } = site
+
+              return allMdx.edges.map(edge => {
+                const {
+                  node: {
+                    frontmatter: { title, date, description },
+                    fields: { slug },
+                    html,
+                  },
+                } = edge
+
+                return Object.assign({}, edge.node.frontmatter, {
+                  title: title,
+                  description: description,
+                  date: date,
+                  url: siteUrl + slug,
+                  guid: siteUrl + slug,
+                  custom_elements: [{ "content:encoded": html }],
+                })
+              })
+            },
+            query: `
+              {
+                allMdx(
+                  filter: { frontmatter: { published: { eq: true } } }
+                  sort: { order: DESC, fields: [frontmatter___date] },
+                ) {
+                  edges {
+                    node {
+                      html
+                      fields { 
+                        slug
+                      }
+                      frontmatter {
+                        title
+                        date
+                        description
+                      }
+                    }
+                  }
+                }
+              }
+            `,
+            output: "/rss.xml",
+            title: "Raki Rahman | Big Data & AI | Feed",
+            // optional configuration to insert feed reference in pages:
+            // if `string` is used, it will be used to create RegExp and then test if pathname of
+            // current page satisfied this regular expression;
+            // if not provided or `undefined`, all pages will have feed reference inserted
+            match: "^/",
           },
         ],
       },
