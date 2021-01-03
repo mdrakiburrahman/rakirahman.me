@@ -183,9 +183,7 @@ module.exports = {
                         {
                           "media:thumbnail": {
                             _attr: {
-                              url:
-                                siteUrl +
-                                featuredImage.childImageSharp.fixed.src,
+                              url: siteUrl + featuredImage.publicURL,
                             },
                           },
                         },
@@ -213,11 +211,6 @@ module.exports = {
                         description
                         featuredImage {
                           publicURL
-                          childImageSharp {
-                            fixed(width: 400) {
-                              src
-                            }
-                          }
                         }
                       }
                     }

@@ -54,8 +54,8 @@ const Footer = _ => {
               <span>
                 <a
                   href="https://www.rakirahman.me/rss.xml"
-                  aria-label="RSS Feed"
-                  title="RSS Feed"
+                  aria-label="View RSS Feed"
+                  title="View RSS Feed"
                   target="_blank"
                   rel="noopener noreferrer"
                 >
