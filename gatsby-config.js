@@ -1,7 +1,7 @@
 module.exports = {
   siteMetadata: {
     title: `Raki Rahman`,
-    description: `Raki Rahman | Big Data & AI`,
+    description: `Big Data & AI`,
     author: `Raki Rahman`,
     siteUrl:
       process.env.DEV_ENV === 1
@@ -122,6 +122,25 @@ module.exports = {
             }
           }
         `,
+
+        // Mostly copied from default in gatsby-plugin-feed source code
+        // but adding a custom namespace
+        // Credits: https://github.com/gatsbyjs/gatsby/issues/10308
+        setup: ({
+          query: {
+            site: { siteMetadata },
+          },
+          ...rest
+        }) => {
+          return {
+            ...siteMetadata,
+            ...rest,
+            custom_namespaces: {
+              media: "http://search.yahoo.com/mrss/",
+            },
+          }
+        },
+
         feeds: [
           {
             serialize: ({ query: { site, allMdx } }) => {
@@ -138,6 +157,10 @@ module.exports = {
                   },
                 } = edge
 
+                // Options available here:
+                // https://www.npmjs.com/package/rss#itemoptions
+                // Credits: https://github.com/dylang/node-rss/issues/19
+
                 return Object.assign({}, edge.node.frontmatter, {
                   title: title,
                   description: description,
@@ -147,7 +170,28 @@ module.exports = {
                   enclosure: featuredImage && {
                     url: siteUrl + featuredImage.publicURL,
                   },
-                  custom_elements: [{ "content:encoded": html }],
+                  custom_elements: [
+                    { "content:encoded": html },
+                    {
+                      "media:content": [
+                        {
+                          _attr: {
+                            medium: "image",
+                            url: siteUrl + featuredImage.publicURL,
+                          },
+                        },
+                        {
+                          "media:thumbnail": {
+                            _attr: {
+                              url:
+                                siteUrl +
+                                featuredImage.childImageSharp.fixed.src,
+                            },
+                          },
+                        },
+                      ],
+                    },
+                  ],
                 })
               })
             },
@@ -169,6 +213,11 @@ module.exports = {
                         description
                         featuredImage {
                           publicURL
+                          childImageSharp {
+                            fixed(width: 400) {
+                              src
+                            }
+                          }
                         }
                       }
                     }
@@ -177,7 +226,7 @@ module.exports = {
               }
             `,
             output: "/rss.xml",
-            title: "Raki Rahman | Big Data & AI | Feed",
+            title: "Raki Rahman",
             // optional configuration to insert feed reference in pages:
             // if `string` is used, it will be used to create RegExp and then test if pathname of
             // current page satisfied this regular expression;
