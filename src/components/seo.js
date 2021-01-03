@@ -87,6 +87,10 @@ function SEO({ description, lang, meta, title, blog, ogImage, ogUrl }) {
           content: seo.image,
         },
         {
+          property: `twitter:image`,
+          content: seo.image,
+        },
+        {
           property: `og:type`,
           content: `article`,
         },
