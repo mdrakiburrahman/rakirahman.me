@@ -6,6 +6,7 @@ tags: ["Databricks", "Synapse", "Autoloader"]
 description: End-to-end walkthrough of Autoloader setup for ingesting mock data from Braze
 toc: true
 seoImage: "og-braze-to-synapse-with-autoloader.png"
+featuredImage: "./featured-image.png"
 ---
 
 import { Callout } from "../../src/components/atoms.js"
@@ -31,14 +32,13 @@ For more information on how Braze manages it's User Lifecycle, check out this [a
 
 Once data is ingested into their system via the SDK, Braze allows us to export data in real-time using an integration system called "[Currents](https://www.braze.com/docs/user_guide/data_and_analytics/braze_currents/)" (that actually runs [Kafka](https://www.youtube.com/watch?v=1DpET624Qro) under the hood). Essentially, Braze leverages Kafka Connect to serialize real-time Customer Engagement Events into `.avro` format, and drops those files in real-time into [Azure Storage](https://www.braze.com/docs/partners/data_and_infrastructure_agility/cloud_storage/microsoft_azure_blob_storage_for_currents/?redirected=true) as a managed connection.
 
-This becomes our entry point for analytics on Azure.  
+This becomes our entry point for analytics on Azure.
 
 <Callout>
 
 📦 All sample data files, scripts and artifacts used in this article is available on [GitHub](https://github.com/mdrakiburrahman/braze-poc).
 
 </Callout>
-
 
 That's all the context we need on Braze for now - let's dive into the data side of things.
 
@@ -52,12 +52,11 @@ This is the blueprint we'll follow:
 
 ### Step 1: Intake and Aggregate Event Data
 
-Although we don't have access to a live Braze environment, thankfully, Braze has made their sample data available on their [GitHub](https://github.com/Appboy/currents-examples/tree/master/sample-data/Avro). 
+Although we don't have access to a live Braze environment, thankfully, Braze has made their sample data available on their [GitHub](https://github.com/Appboy/currents-examples/tree/master/sample-data/Avro).
 
 ![Generating Purchase Event data for this demo](images/braze-demo-data.png)
 
 Above, I've taken the schema for `Purchase` table, and created **17** Unique Purchase Events spread across **4** `.avro` files that we can use to simulate Currents.
-
 
 ### Step 2: Send Event Data to a Data Lake
 
@@ -80,20 +79,22 @@ Once the data is in Synapse, we can easily point Power BI to it and spin up a da
 ### Resource Providers
 
 Ensure the following Resource Providers are registered on your Azure Subscription:
-* `Microsoft.Databricks`
-* `Microsoft.Storage`
-* `Microsoft.Synapse`
-* `Microsoft.EventGrid`
-* `Microsoft.KeyVault`
+
+- `Microsoft.Databricks`
+- `Microsoft.Storage`
+- `Microsoft.Synapse`
+- `Microsoft.EventGrid`
+- `Microsoft.KeyVault`
 
 To register a resource provider, view step-by-step guide [here](https://docs.microsoft.com/en-us/azure/azure-resource-manager/management/resource-providers-and-types#azure-portal).
 
 ### App Registration/Service Principal
 
 Create a Service Principal, and make note of:
-* `clientId`
-* `tenantId`
-* `clientSecret`
+
+- `clientId`
+- `tenantId`
+- `clientSecret`
 
 To register a resource provider, view step-by-step guide [here](https://docs.microsoft.com/en-us/azure/active-directory/develop/howto-create-service-principal-portal#register-an-application-with-azure-ad-and-create-a-service-principal).
 
@@ -110,14 +111,15 @@ For Databricks, we configure the **Premium** Tier (will be useful down the line 
 **Storage Accounts**
 
 Note that we configure **2** Storage Accounts:
+
 1. **Data Lake Account** - where we will be landing our Braze data
 2. **Blob Account** - as Synapse needs a [regular/dedicated](https://docs.microsoft.com/en-us/azure/databricks/data/data-sources/azure/synapse-analytics#temporary-data-management) - i.e. Staging area for Structured Streaming.
 
-*Data Lake Account*
+_Data Lake Account_
 
 We pick `StorageV2` in Account kind, and ensure `Hierarchial namespace` is `Enabled` (will be useful down the line).
 
-*Blob Account*
+_Blob Account_
 
 We pick `BlobStorage` in Account kind.
 
@@ -134,15 +136,18 @@ We create with out-of-the-box configurations.
 **Assign Service Principal permissions**
 
 Assign the Service Principal the following permissions on our Resource Group (for it to create and configure the Event Grid):
-* `Contributor`
+
+- `Contributor`
 
 Note that the actual permissions required after the one time setup can be demoted to:
-* `Contributor` on our **ADLS Storage Account** and
-* `Contributor` on the **Event Grid** (once it's created by Autoloader - coming up)
+
+- `Contributor` on our **ADLS Storage Account** and
+- `Contributor` on the **Event Grid** (once it's created by Autoloader - coming up)
 
 **Setup ADLS Directory Structure**
 
 We create two containers on ADLS:
+
 1. `landing`: Where the Currents Data will land
 2. `bronze`: Where we will be storing our parsed Delta Table and sample schema file
 
@@ -161,20 +166,20 @@ We create a `synapse` container on our Blob Storage Account - and leave it empty
 
 **Setup Key Vault Secrets**
 
-* `adls-storageAccount-Name`: Name of our ADLS Storage Account
-* `adls-storageAccount-AccessKey`: Access Key to our ADLS Storage Account
-* `adls-storageQueue-SAS`: Shared Access Signature to manage queues on our ADLS Storage Account
-* `blob-storageAccount-Name`: Name of our Blob Storage Account
-* `blob-storageAccount-AccessKey`: Access Key to our Blob Storage Account
-* `sp-clientId`: Client ID of our Service Principal 
-* `sp-clientSecret`: Secret of our Service Principal
-* `sp-tenantId`: Our Azure AD Tenant Id
-* `sp-subscriptionId`: Our Subscription Id
-* `sp-rgName`: Our Resource Group name
-* `synapse-userName`: User Name for our Synapse Account
-* `synapse-password`: Password for our Synapse Account
-* `synapse-server`: Server Name hosting Synapse
-* `synapse-db`: Database Name on Synapse
+- `adls-storageAccount-Name`: Name of our ADLS Storage Account
+- `adls-storageAccount-AccessKey`: Access Key to our ADLS Storage Account
+- `adls-storageQueue-SAS`: Shared Access Signature to manage queues on our ADLS Storage Account
+- `blob-storageAccount-Name`: Name of our Blob Storage Account
+- `blob-storageAccount-AccessKey`: Access Key to our Blob Storage Account
+- `sp-clientId`: Client ID of our Service Principal
+- `sp-clientSecret`: Secret of our Service Principal
+- `sp-tenantId`: Our Azure AD Tenant Id
+- `sp-subscriptionId`: Our Subscription Id
+- `sp-rgName`: Our Resource Group name
+- `synapse-userName`: User Name for our Synapse Account
+- `synapse-password`: Password for our Synapse Account
+- `synapse-server`: Server Name hosting Synapse
+- `synapse-db`: Database Name on Synapse
 
 **Cluster Setup on Databricks**
 
@@ -214,17 +219,20 @@ spark.conf.set("fs.azure.account.key." + adls_account + ".dfs.core.windows.net",
 blob_account = dbutils.secrets.get(scope="key-vault-secrets", key="blob-storageAccount-Name")
 blob_key = dbutils.secrets.get(scope="key-vault-secrets", key="blob-storageAccount-AccessKey")
 
-spark.conf.set("fs.azure.account.key." + blob_account + ".blob.core.windows.net", blob_key) 
+spark.conf.set("fs.azure.account.key." + blob_account + ".blob.core.windows.net", blob_key)
 ```
+
 The above block imports the necessary connection secrets and sets the application parameters when Spark connects to our Storage Accounts.
 
 We import the temporary avro file into a dataframe to infer the dataset schema for Autoloader:
+
 ```python
 df_tmp = spark.read.format("avro").load("/mnt/bronze/tmp/sample.avro")
 dataset_schema = df_tmp.schema
 ```
 
 This sets up the `cloudFilesConf` permissions object that we pass in to create the Autoloader dataframe:
+
 ```python
 queue_sas = dbutils.secrets.get(scope="key-vault-secrets", key="adls-storageQueue-SAS")
 
@@ -238,9 +246,10 @@ cloudFilesConf = {
   "cloudFiles.resourceGroup": dbutils.secrets.get(scope="key-vault-secrets", key="sp-rgName"),
   "cloudFiles.useNotifications": "true",
   "cloudFiles.includeExistingFiles": "true",
-  "cloudFiles.validateOptions": "true",  
+  "cloudFiles.validateOptions": "true",
 }
 ```
+
 We point spark to the root path of our `Purchase` folder, and initiate the autoloader dataframe:
 
 ```python
@@ -251,6 +260,7 @@ autoloader_df = (spark.readStream.format("cloudFiles")
                  .load("wasbs://landing@{}.blob.core.windows.net/currents/dataexport.prod-02.AzureBlob.integration.12345/event_type=users.behaviors.Purchase/".format(adls_account))
                 )
 ```
+
 Except - a `date` column kept getting added to the schema.
 
 <Callout>
@@ -278,6 +288,7 @@ autoloader_df = autoloader_df \
 ```
 
 We then setup the Synapse Connector:
+
 <Callout>
 
 💎 The new [`copy`](https://docs.microsoft.com/en-us/sql/t-sql/statements/copy-into-transact-sql?view=azure-sqldw-latest) command used above is brilliant - we don't have to specify any other settings.
@@ -295,11 +306,12 @@ password = dbutils.secrets.get(scope="key-vault-secrets", key="synapse-password"
 dbtable = "users_behaviors_Purchase"
 servername = dbutils.secrets.get(scope="key-vault-secrets", key="synapse-server")
 databasename = dbutils.secrets.get(scope="key-vault-secrets", key="synapse-db")
-  
+
 jdbc_url = "jdbc:sqlserver://{}.database.windows.net:1433;database={};user={}@{};password={};encrypt=true;trustServerCertificate=false;hostNameInCertificate=*.database.windows.net;loginTimeout=30;".format(servername,databasename,user,servername,password)
 ```
 
 And finally, kick off both streams:
+
 ```python
 (autoloader_df.writeStream
   .format("delta")
@@ -321,6 +333,7 @@ And finally, kick off both streams:
   .start()
 )
 ```
+
 Due to the `.trigger(once=True)` above, both Streams kick off, does some "stuff" (we see below), and shut down:
 
 ![Synapse Stream - First Run](images/delta-stream-first-run.png)
@@ -339,8 +352,9 @@ And 2 queues on our Storage Account as well:
 ![Autoloader Queue](images/autoloader-queues.png)
 
 In other words - for each stream:
+
 1. A new `.avro` file is dropped (by Braze or by us) - as we'll see shortly
-2. The Event Grid Topic  watching the ADLS location grabs the location of the new file, drops it in the queue
+2. The Event Grid Topic watching the ADLS location grabs the location of the new file, drops it in the queue
 3. The queue holds this file location - until our Streaming DataFrame grabs and processes the file as part of the next microbatch, and clears the queue entry
 4. Rinse and repeat for the next file
 
@@ -349,8 +363,9 @@ In other words - for each stream:
 💡 For the subsequent runs, let's comment out wiith `.trigger(once=True)` on both Stream definitions to keep a continuous stream running.
 
 🥇 To follow [best practices](https://docs.microsoft.com/en-us/azure/databricks/spark/latest/structured-streaming/auto-loader#permissions), let's also remove the `Contributor` permission on our Service Principal from the Resource Group - and update to:
-* `Contributor` on our **ADLS Storage Account** and
-* `Contributor` on the newly created **Event Grid**
+
+- `Contributor` on our **ADLS Storage Account** and
+- `Contributor` on the newly created **Event Grid**
 
 </Callout>
 
@@ -372,6 +387,7 @@ OPTIONS (path "/mnt/bronze/currents/users.behaviors.Purchase")
 ```
 
 Since our Delta Table is empty (no data dropped yet) running a `SELECT` returns empty result:
+
 ```sql
 SELECT * FROM CURRENTS.users_behaviors_Purchase
 ```
@@ -393,6 +409,7 @@ And our Delta and Synapse Tables both have the data upon querying:
 ![Synapse & Delta - After](/gifs/query-data.gif)
 
 ### Wrap up
+
 We explored the convenience of Autoloader in setting up a low-configuration Stream Ingestion pipeline - demonstrated with Braze's Currents `.avro` data, while leveraging the `COPY` command in Synapse for a hassle-free experience.
 
 In a Production implementation, depending on the number of tables being subscribed to from Currents, a different Streaming DataFrame per table (i.e. drop location) can be setup.

@@ -132,7 +132,7 @@ module.exports = {
               return allMdx.edges.map(edge => {
                 const {
                   node: {
-                    frontmatter: { title, date, description },
+                    frontmatter: { title, date, description, featuredImage },
                     fields: { slug },
                     html,
                   },
@@ -144,6 +144,9 @@ module.exports = {
                   date: date,
                   url: siteUrl + slug,
                   guid: siteUrl + slug,
+                  enclosure: featuredImage && {
+                    url: siteUrl + featuredImage.publicURL,
+                  },
                   custom_elements: [{ "content:encoded": html }],
                 })
               })
@@ -164,6 +167,9 @@ module.exports = {
                         title
                         date
                         description
+                        featuredImage {
+                          publicURL
+                        }
                       }
                     }
                   }
