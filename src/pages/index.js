@@ -27,8 +27,7 @@ const IndexPage = () => {
           </div>
         </div>
       </div>
-      <Heading>Articles</Heading>
-      <PostList />
+      <PostList showHeading />
       <Contact />
     </Layout>
   )
