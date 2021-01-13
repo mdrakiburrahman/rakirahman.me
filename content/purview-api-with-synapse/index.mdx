@@ -129,10 +129,10 @@ def azuread_auth(tenant_id: str, client_id: str, client_secret: str, resource_ur
 
 We're going to be passing around the `access_token` returned above every time we make a call to Purview's REST API.
 
-Next, we leverage PyApacheAtlas to return an `AtlasClient` using `atlas_auth`:
+Next, we leverage PyApacheAtlas to return a `client` using `purview_auth`:
 
 ```Python
-def atlas_auth(tenant_id: str, client_id: str, client_secret: str, atlas_endpoint: str):
+def purview_auth(tenant_id: str, client_id: str, client_secret: str, data_catalog_name: str):
     """
     Authenticates to Atlas Endpoint and returns a client object
     """
@@ -141,9 +141,9 @@ def atlas_auth(tenant_id: str, client_id: str, client_secret: str, atlas_endpoin
         client_id = client_id,
         client_secret = client_secret
     )
-    client = AtlasClient(
-        endpoint_url=os.environ.get("ENDPOINT_URL", atlas_endpoint),
-        authentication=oauth
+    client = PurviewClient(
+        account_name = data_catalog_name,
+        authentication = oauth
     )
     return client
 ```
@@ -165,6 +165,7 @@ def get_all_adls_assets(path: str, data_catalog_name: str, azuread_access_token:
     """
     Retrieves all scanned assets for the specified ADLS Storage Account Container.
 
+    Note: this function intentionally recursively traverses until only assets remain (i.e. no folders are returned, only files).
     """
 
     # List all files in path
@@ -227,7 +228,7 @@ files_df['schema'] = files_df.apply(lambda row: get_adls_asset_schema(assets_all
 Where we use the `client` object we defined earlier to call `get_adls_asset_schema`:
 
 ```python
-def get_adls_asset_schema(assets_all: list, asset: str, atlas_client: str):
+def get_adls_asset_schema(assets_all: list, asset: str, purview_client: str):
     """
     Returns the asset schema and classifications from Purview
     """
@@ -238,7 +239,7 @@ def get_adls_asset_schema(assets_all: list, asset: str, atlas_client: str):
     match_id = ""
     for entry in assets_list:
         # Retrieve the asset definition from the Atlas Client
-        response = atlas_client.get_entity(entry['id'])
+        response = purview_client.get_entity(entry['id'])
 
         # API response is different based on the asset
         if asset.split('.', 1)[-1] == "json":
@@ -251,7 +252,7 @@ def get_adls_asset_schema(assets_all: list, asset: str, atlas_client: str):
             match_id = filtered_response[0][0]
 
     # Retrieve the schema based on the guid match
-    response = atlas_client.get_entity(match_id)
+    response = purview_client.get_entity(match_id)
     asset_schema = jmespath.search("[referredEntities.*.[attributes.name, classifications[0].[typeName][0]]]", response)[0]
 
     return asset_schema
