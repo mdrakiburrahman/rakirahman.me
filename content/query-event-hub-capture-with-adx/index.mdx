@@ -14,7 +14,7 @@ import { ExtLink, InlinePageLink } from "../../src/components/atoms.js"
 
 [Azure Data Explorer](https://docs.microsoft.com/en-us/azure/data-explorer/data-explorer-overview) (ADX) has built-in Data Ingestion capabilities [from Event Hub](https://docs.microsoft.com/en-us/azure/data-explorer/ingest-data-event-hub) - where streaming data is continuously ingested into a [Target Table](https://docs.microsoft.com/en-us/azure/data-explorer/ingest-data-event-hub) on an ADX database. We can also take advantage of external tables on ADX to [query data on Azure Data Lake](<(https://docs.microsoft.com/en-us/azure/data-explorer/data-lake-query-data)>) - in particular, the `avro` files from [Event Hub Capture](https://docs.microsoft.com/en-us/azure/event-hubs/event-hubs-capture-overview).
 
-We looked at how to process Capture files with Auto Loader earlier [here](../event-hub-capture-with-autoloader/). This article presents an alternative approach that allows us to query the same set of `avro` files **in place** using [`KQL`](https://docs.microsoft.com/en-us/azure/data-explorer/kusto/query/) instead - with the added benefit of not having to specify the payload schema or move the data from ADLS.
+We looked at how to process Capture files with Auto Loader earlier [here](../event-hub-capture-with-autoloader/). This article presents an alternative approach that allows us to query the same set of `avro` files **_in place_** using [`KQL`](https://docs.microsoft.com/en-us/azure/data-explorer/kusto/query/) instead - with the added benefit of not having to specify the payload schema or move data from the data lake.
 
 <Callout>
 
@@ -25,7 +25,7 @@ We looked at how to process Capture files with Auto Loader earlier [here](../eve
 Before we structure our `KQL` query to define the external table, we make a note of the **Time window (minutes)** of the Event Hub Capture Frequency - which in our case is **every 1 minute**:
 ![Capture Frequency](images/capture-semantics.png)
 
-We begin with an existing ADX Database (setup instructions [here](https://docs.microsoft.com/en-us/azure/data-explorer/create-cluster-database-resource-manager)), and create a **external table** on top our Data Lake using the command below:
+We begin with an existing ADX Database (setup instructions [here](https://docs.microsoft.com/en-us/azure/data-explorer/create-cluster-database-resource-manager)), and create an **external table** on top our Data Lake using the command below:
 
 ```sql
 // Create External Table
@@ -47,7 +47,10 @@ dataformat=apacheavro
 
 Note a couple takeaways from here:
 
-- We specify the `avro` schema (not the `JSON` payload schema) when creating the External Table. This schema isn't likely to change as it's the same for all Event Hubs.
+- We specify the `avro` schema (and not the `JSON` payload schema that our application dictates) when creating the External Table.
+
+  The `avro` schema isn't likely to change as it's the same for all Event Hubs - meaning we only need to do this once.
+
 - We specify the following "[Virtual columns](https://docs.microsoft.com/en-us/azure/data-explorer/kusto/management/external-tables-azurestorage-azuredatalake#virtual-columns)" via `pathformat`, which also defines the Capture Frequency down to minutes granularity (i.e. in alignment with how our Capture is configured).
 
   - `EHPartition`: Event Hub Partition
@@ -70,7 +73,7 @@ We can list the "External table artifacts" (i.e. the `avro` files that make up o
 
 ![External Table Artifacts](images/inferred-partitions.png)
 
-And finally, we can query the contents of our Event Hub Capture `JSON` payloads without having to specify the schema, thanks to the [`bag_unpack()`](https://docs.microsoft.com/en-us/azure/data-explorer/kusto/query/bag-unpackplugin) command
+And finally, we can query the contents of our Event Hub Capture `JSON` payloads without having to specify the schema, thanks to the [`bag_unpack()`](https://docs.microsoft.com/en-us/azure/data-explorer/kusto/query/bag-unpackplugin) Kusto command:
 
 ```sql
 // Query External Table
