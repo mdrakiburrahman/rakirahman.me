@@ -19,11 +19,12 @@ My personal blog running on Gatsby.
 ## How to use
 
 1. Clone this repository.
-2. Install Gatsby with `npm install -g gatsby-cli`.
-3. `cd` into the root directory of the cloned repository and run `npm install` to install all site dependencies.
-4. Run `gatsby develop` to build and start a local development server.
-5. View the site at `localhost:8000`, with graphql endpoint at `localhost:8000/___graphql`
-6. To view a production version of the site, run: `gatsby clean; gatsby build; gatsby serve` and view at `localhost:9000`
+2. Install nodejs and `npm` (e.g. from [here](https://nodejs.org/en/download/))
+3. Install Gatsby with `npm install -g gatsby-cli`.
+4. `cd` into the root directory of the cloned repository and run `npm install` to install all site dependencies.
+5. Run `gatsby develop` to build and start a local development server.
+6. View the site at `localhost:8000`, with graphql endpoint at `localhost:8000/___graphql`
+7. To view a production version of the site, run: `gatsby clean; gatsby build; gatsby serve` and view at `localhost:9000`
 
 
 ## CI/CD
