@@ -129,7 +129,7 @@ These are techniques I found from self-exploration, and can be performed by anyo
 
 ### Dockerfile
 
-As we noted in our table earlier, the SQL MI "Pod" is actually made up of 3 containers: `arc-sqlmi`, `collectd` and `fluentbit`. We are interested `arc-sqlmi` - which contains the binaries that make up the core SQL Server Engine. We can leverage our command from earlier to pull out the Dockerfile as follows:
+As we noted in our table earlier, the SQL MI "Pod" is actually made up of 3 containers: `arc-sqlmi`, `collectd` and `fluentbit`. We are interested in `arc-sqlmi` - which contains the binaries that make up the core SQL Server Engine. We can leverage our command from earlier to pull out the Dockerfile as follows:
 
 ```bash
 dfimage -sV=1.36 mcr.microsoft.com/arcdata/arc-sqlmi:public-preview-jun-2021 | grep -Pzo '.*Dockerfile(.*\n)*'
