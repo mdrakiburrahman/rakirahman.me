@@ -96,7 +96,7 @@ COPY resources/linux.png /usr/share/icons/wsl/linux.png
 
 We can do a `docker build > tag > push` to push the Container image up to a registry, which I've done to Docker Hub [here](https://hub.docker.com/repository/docker/mdrrakiburrahman/cbl-mariner-test).
 
-Now, to reverse engineer this image's Dockerfile **without access** to the repo (which may be within a secured repository - as is the case with Arc Data Services - which is part of Azure), we can leverage [Whaler](https://github.com/P3GLEG/Whaler) - one of a handful of tools available in the Community to reverse engineer docker images. Whaler is conveniently made available inside the container image [`alpine/dfimage`](https://hub.docker.com/r/alpine/dfimage) on Dockerhub. 
+Now, to reverse engineer this image's Dockerfile **without access** to the repo, we can leverage [Whaler](https://github.com/P3GLEG/Whaler) - one of a handful of tools available in the Community to reverse engineer docker images. Whaler is conveniently made available inside the container image [`alpine/dfimage`](https://hub.docker.com/r/alpine/dfimage) on Dockerhub. 
 
 We can invoke Whaler against any Container using 2 lines of code:
 ```bash
