@@ -77,11 +77,8 @@ We note that all of these images are getting sourced from [Microsoft Container R
 
 </Callout>
 
-One other point to call out is that Microsoft recently introduced the new Operating System [CBL-Mariner](https://en.wikipedia.org/wiki/CBL-Mariner) (**C**ommon **B**ase **L**inux) - which is used across the Microsoft ecosystem (not just Arc), such as Azure Stack HCI, AKS, IoT Edge and WSL. Source code is [available in Github here](https://github.com/microsoft/CBL-Mariner) - meaning anyone can transparently build an application on top of the Mariner OS - as I'll be demonstrating. 
-
-As we'll see shortly, it appears that the vast majority our Arc containers above seem to leverage Mariner as the [Base image](https://docs.docker.com/develop/develop-images/baseimages/). 
-
-## POC: Reverse Engineering a simple Mariner Container
+## POC: Reverse Engineering a simple Container
+Microsoft recently introduced the new Operating System [CBL-Mariner](https://en.wikipedia.org/wiki/CBL-Mariner) (**C**ommon **B**ase **L**inux) - which is used across Azure Stack HCI, AKS, IoT Edge and WSL. Source code is [available in Github here](https://github.com/microsoft/CBL-Mariner) - meaning anyone can transparently build an application on top of the Mariner OS - as I'll be demonstrating. 
 
 Here we have a simple Dockerfile that uses the Mariner OS (from this [quick repo](https://github.com/mdrakiburrahman/CBL-mariner-test)):
 
@@ -114,7 +111,7 @@ So if we were to run this command on any local machine that has Docker CLI avail
 
 ![Getting the Dockerfile out of our Mariner Image without access to repo](images/mariner-poc.png)
 
-As we can see, it's identical to the Dockerfile used to initially generate the image. We can use this technique to reverse engineer _any other_ Container Image we like as well (not just Mariner based) - such as the SQL MI pod that gets deployed for Azure Arc.
+As we can see, it's identical to the Dockerfile used to initially generate the image. We can use this technique to reverse engineer _any other_ Container Image we like as well - such as the SQL MI pod that gets deployed for Azure Arc.
 
 
 ## Reverse Engineering SQL MI Container
@@ -193,7 +190,7 @@ And we see the files from all 3 Containers get copied to our Local Windows Drive
 ![Getting the files out of all 3 SQL MI Container Images](images/arc-sqlmi-files.png)
 
 ## Comparing Arc Fluentbit image with generic
-To close off, let's validate this reverse engineering method against the Dockerfile for an Arc container that _isn't_ running the Mariner OS such as [Fluentbit](https://fluentbit.io/) which uses a [distroless base image from gcr with GCC available](https://github.com/GoogleContainerTools/distroless/tree/main/cc), and compare the MCR image against the [Dockerhub version](https://hub.docker.com/r/fluent/fluent-bit/tags?page=1&ordering=last_updated):
+To close off, let's validate this reverse engineering method against the Dockerfile for another container such as [Fluentbit](https://fluentbit.io/) which uses a [distroless base image from gcr with GCC available](https://github.com/GoogleContainerTools/distroless/tree/main/cc), and compare the MCR image against the [Dockerhub version](https://hub.docker.com/r/fluent/fluent-bit/tags?page=1&ordering=last_updated):
 
 ```bash
 # Fluentbit from Arc via MCR
@@ -211,7 +208,7 @@ And since we have access to the [fluent-bit 1.3.8 Dockerfile](https://github.com
 
 ## Summary
 
-I've found the Dockerfile reverse engineering technique using Whaler to be fairly robust - and as we saw it also works equally well for other Arc Containers that aren't running the Mariner Base OS.
+I've found the Dockerfile reverse engineering technique using Whaler to be fairly robust.
 
 Regarding binary extraction, YMMV with running `kubectl cp` against restricted files running inside the Pod, as I ran into [Permission Denied](https://stackoverflow.com/questions/57734514/kubectl-cp-to-a-pod-is-failing-because-of-permission-denied) messages, and faced issues with `kubectl cp` [failing on symlinks](https://github.com/kubernetes/kubernetes/issues/78211).
 
