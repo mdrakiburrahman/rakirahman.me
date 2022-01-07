@@ -32,9 +32,8 @@ The only pre-requisite is an Azure Subscription (or a [credit card](https://azur
 
 - We don’t need to create a keytab from domain joined machine. In fact, as I found out the linux machine creating the Keytab via [`ktutil`](https://web.mit.edu/kerberos/krb5-1.12/doc/admin/admin_commands/ktutil.html) doesn't even have to have network connectivity to the Domain Controller (it can be some random linux machine). I haven't found this clearly documented anywhere yet but is very helpful to know since [domain joining linux machines is a bit of a pain](https://docs.microsoft.com/en-us/sql/linux/sql-server-linux-active-directory-join-domain?view=sql-server-ver15).
 - We must create a [Reverse Lookup Zone and Pointer Record](https://activedirectorypro.com/configure-dns-reverse-lookup-zones-ptr-records/) to the Domain Controller in our DNS Zone, otherwise SQL MI isn't able to create the Windows Users and Logins [later on in the process](#create-windows-logins). Debugging this was not straightforward so I've scripted this out.
-- We can [`patch`](https://kubernetes.io/docs/tasks/manage-kubernetes-objects/update-api-object-kubectl-patch/) the K8s LB at any time in the process - because what matters is the SPN entry matches the ports.
+- We can [`patch`](https://kubernetes.io/docs/tasks/manage-kubernetes-objects/update-api-object-kubectl-patch/) the K8s LB at any time in the process if we want to change the ports - the only thing that matters is the SPN entry matches the ports.
 - Restarting the SQL MI Pod has it reauthenticate with the Keytab. So say if you deactivate the underlying AD account, the moment you restart the Pod is when this change will be reflected. I imagine this is how Keytab rotations will work in the future as well (change password > replace Keytab `secret` > kill pod > new pod uses new keytab).
-- Currently, Active Directory works for the Data Controller in _Indirect_ mode, but most of the plumbing for _Direct_ mode seems to be in place for an upcoming release.
 
 ## Environment Setup
 
@@ -47,7 +46,9 @@ The following steps are required to setup a fully-functional AD environment for 
 3. Client VM prep: SSMS, pre-reqs such as `azcli`, `kubectl` etc)
 4. Data Controller deployment (creates the `ActiveDirectoryConnector` CRD in the latest version of the Controller Image `mcr.microsoft.com/arcdata/arc-controller:v1.2.0_2021-12-15`)
 5. Active Directory pre-reqs: SQL MI user account, SPNs, Reverse Lookup Zone creation and PTR record
-6. Keytab creation on Linux machine
+6. Keytab creation -
+  a. On Linux machine via multipass; or,
+  b. Using Kubernetes [Jobs](https://kubernetes.io/docs/concepts/workloads/controllers/job/)
 7. Deploy SQL MI via YAMLs
 8. Create Windows Logins
 9. Windows Auth from Domain Joined machine
@@ -247,7 +248,7 @@ New-Item -path alias:kubectl -value 'C:\ProgramData\chocolatey\lib\kubernetes-cl
 
 ### Data Controller deployment
 
-We can perform the rest of the work from VS Code inside `client` - starting with deploying the Data Controller in [Indirect Mode](https://docs.microsoft.com/en-us/azure/azure-arc/data/create-data-controller-indirect-cli?tabs=windows):
+We can perform the rest of the work from VS Code inside `client` - starting with deploying the Data Controller in [Indirect Mode](https://docs.microsoft.com/en-us/azure/azure-arc/data/create-data-controller-indirect-cli?tabs=windows) (Direct mode works similarly):
 
 ```powershell
 mkdir "C:\azure-arc"
@@ -401,19 +402,11 @@ And the Reverse Lookup Zone and Pointer record for the Domain Controller's Priva
 
 ### Keytab creation
 
+At this point - we have 2 infrastructure options to leverage in creating a keytab - the second one is more robust/scalable/kube-native.
+
+#### Option 1 - Ubuntu 20.04 VM via multipass
+
 There's a handy bash script [`create-sql-keytab.sh`](https://github.com/microsoft/azure_arc/blob/main/arc_data_services/deploy/scripts/create-sql-keytab.sh) published in the `microsoft/azure_arc` repo that creates the keytab using `ktutil` or `adutil` (your choice).
-
-<Callout>
-
-📦 **Dockerfile?**
-
-First thing I tried to do is see if the script will work inside an Ubuntu 20.04 docker container ([here's the `dockerfile`](https://github.com/mdrakiburrahman/arcsqlmi-activedirectory/blob/main/keytab-docker/dockerfile))- however I found that the script as-written (uses [`printf`](https://github.com/microsoft/azure_arc/blob/43d971cca0a00756a4973be17c56236396d5e705/arc_data_services/deploy/scripts/create-sql-keytab.sh#L176) to call `ktutil` interactive prompts in stages - like [this suggestion from StackOverflow](https://stackoverflow.com/a/37454886)) doesn't work inside a container. I was running into `cannot read password while adding new entry` inside the container. As a workaround, I found the `echo` and `sleep` syntax to wrap `ktutil` as [suggested here](https://stackoverflow.com/a/69653057) works inside Docker, but didn't want to refactor the existing script into this brittle solution.
-
-I _think_ this is because Containers are missing [`/dev/tty`](https://github.com/node-red/node-red-docker/issues/15) on Docker Desktop in WSL - which makes the `printf` wrapper above break.
-
-So instead, I found the script works fine inside Ubuntu 20.04 VM spun up by [`multipass`](https://multipass.run/docs/installing-on-windows).
-
-</Callout>
 
 The following script installs the necessay pre-reqs on a new Ubuntu 20.04 VM (this VM is _not part of our domain_, it can't even talk to `dc` - and that's ok) and generates the Keytab and K8s `secret`:
 
@@ -457,9 +450,131 @@ AD_PASSWORD=P@s5w0rd123!! ./create-sql-keytab.sh \
 We see:
 ![Keytab creation script](images/keytab-creation.png)
 
+This creates a K8s secret YAML file containing the Keytab in Base64 - `sql-ad-yes-1-keytab-secret.yaml`: [docs](https://docs.microsoft.com/en-us/azure/azure-arc/data/deploy-active-directory-sql-managed-instance#deploy-kubernetes-secret-for-the-keytab):
+
+```yaml
+apiVersion: v1
+kind: Secret
+type: Opaque
+metadata:
+  name: sql-ad-yes-1-keytab-secret
+  namespace: arc
+data:
+  keytab: BQIAAABYAAEADUNPTlRPU08uTE9DQUwAFHNxbC1hZC15ZXMtMS1hY2NvdW50AAAAAWHO/OYCABIAIHRLv1C8TDRxuOX6j4vlkugNUfLfa9LJOBL0DapTf3pqAAAAAgAAAEgAAQANQ09OVE9TTy5MT0NBTAAUc3FsLWFkLXllcy0xLWFjY291bnQAAAABYc785gIAFwAQIv5x/euP2cQdeNfxSu9P6gAAAAIAAABoAAIADUNPTlRPU08uTE9DQUwACE1TU1FMU3ZjABpzcWwtYWQteWVzLTEuY29udG9zby5sb2NhbAAAAAFhzvzmAgASACAIPyBe7ljPrzp9fBKrp6GNL0s9xRAqj56xl2rX4oan7wAA...
+```
+
+Which we can apply via `kubectl apply -f sql-ad-yes-1-keytab-secret.yaml`.
+
+#### Option 2 - Kubernetes Job
+
+<Callout>
+
+📢 Shoutout to [Derek Robson](https://www.linkedin.com/in/derek-robson-25512519/) for creating this setup - check out his repo with detailed setup steps [here](https://github.com/djr747/kube-keytab-secret-generator).
+
+</Callout>
+
+We can use the following `service-account.yaml` file to create a [`ServiceAccount`](https://kubernetes.io/docs/tasks/configure-pod-container/configure-service-account/) that has required permissions to create the Keytab Secret:
+
+```yaml
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: keytab-job
+  namespace: arc
+---
+kind: ClusterRole
+apiVersion: rbac.authorization.k8s.io/v1
+metadata:
+  name: keytab-job
+  namespace: arc
+rules:
+  - apiGroups: [""]
+    resources: ["secrets"]
+    verbs: ["list", "create", "update"]
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: keytab-job
+  namespace: arc
+subjects:
+  - kind: ServiceAccount
+    name: keytab-job
+roleRef:
+  kind: ClusterRole
+  name: keytab-job
+  apiGroup: rbac.authorization.k8s.io
+```
+
+From there - we have the following Kubernetes [`Job`](https://kubernetes.io/docs/concepts/workloads/controllers/job/) defined in `deploy-job.yaml` - which spins up [this container image](https://github.com/djr747/kube-keytab-secret-generator/blob/main/dockerfile) containing `ktutil` with a [`bash` wrapper](https://github.com/djr747/kube-keytab-secret-generator/blob/main/scripts/generate-keytab-secret.sh) to create the Keytab Secret:
+```yaml
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: kube-keytab-secret-generator
+  namespace: arc
+spec:
+  template:
+    metadata:
+      labels:
+        name: kube-keytab-secret-generator
+        app: kube-keytab-secret-generator
+    spec:
+      restartPolicy: Never
+      containers:
+      - name: kube-keytab-secret-generator
+        image: djrsystems/kube-keytab-secret-generator:latest
+        env:
+        - name: SECRET_NAMESPACE
+          valueFrom:
+            fieldRef:
+              fieldPath: metadata.namespace
+        - name: PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: keytab-password
+              key: password
+        - name: ACCOUNT
+          value: "sql-ad-yes-1-account"
+        - name: ENCRYPTION_METHODS
+          value: "aes256-cts-hmac-sha1-96,arcfour-hmac"
+        - name: REALM
+          value: "CONTOSO.LOCAL"
+        - name: SECRET_NAME
+          value: "sql-ad-yes-1-keytab-secret"
+        - name: SPNS
+          value: "MSSQLSvc/sql-ad-yes-1.contoso.local,MSSQLSvc/sql-ad-yes-1.contoso.local:31433"
+      serviceAccountName: keytab-job
+      automountServiceAccountToken: true
+```
+
+We create a K8s Secret containing the Active Directory password for our AD user `sql-ad-yes-1-account` - and deploy the YAMLs end-to-end:
+``` bash
+##################################
+# Keytab generation Job deployment
+##################################
+# Create secret with AD Password
+kubectl create secret generic keytab-password --from-literal=password=P@s5w0rd123!! -n arc
+
+# Kubernetes Service Account for Job to create secrets
+kubectl apply -f service-account.yaml
+
+# Kubernetes Job Deployment
+kubectl apply -f deploy-job.yaml
+
+# View keytab secret
+kubectl get secret sql-ad-yes-1-keytab-secret -n arc -o yaml
+```
+We see am ephemeral pod get spun up for the `Job` running under the context of the `ServiceAccount`:
+![Kubernetes Job](images/k8s-job.png)
+
+And the `Secret` get created:
+![Keytab secret](images/keytab-secret.png)
+
+
 ### SQL MI deployment via YAMLs
 
-Here are the 3 YAML files we need to deploy:
+Finally, here are the 2 YAML files we need to deploy to get things working:
 
 1 - `ActiveDirectoryConnector.yaml`: [docs](https://docs.microsoft.com/en-us/azure/azure-arc/data/deploy-active-directory-connector#deploy-active-directory-ad-connector)
 
@@ -482,20 +597,7 @@ spec:
       - 192.168.0.4 # IP Address of DNS nameserver, which is just domain controller in this demo env
 ```
 
-2 - `sql-ad-yes-1-keytab-secret.yaml`: [docs](https://docs.microsoft.com/en-us/azure/azure-arc/data/deploy-active-directory-sql-managed-instance#deploy-kubernetes-secret-for-the-keytab)
-
-```yaml
-apiVersion: v1
-kind: Secret
-type: Opaque
-metadata:
-  name: sql-ad-yes-1-keytab-secret
-  namespace: arc
-data:
-  keytab: BQIAAABYAAEADUNPTlRPU08uTE9DQUwAFHNxbC1hZC15ZXMtMS1hY2NvdW50AAAAAWHO/OYCABIAIHRLv1C8TDRxuOX6j4vlkugNUfLfa9LJOBL0DapTf3pqAAAAAgAAAEgAAQANQ09OVE9TTy5MT0NBTAAUc3FsLWFkLXllcy0xLWFjY291bnQAAAABYc785gIAFwAQIv5x/euP2cQdeNfxSu9P6gAAAAIAAABoAAIADUNPTlRPU08uTE9DQUwACE1TU1FMU3ZjABpzcWwtYWQteWVzLTEuY29udG9zby5sb2NhbAAAAAFhzvzmAgASACAIPyBe7ljPrzp9fBKrp6GNL0s9xRAqj56xl2rX4oan7wAA...
-```
-
-3 - `sql-ad-yes-1.yaml`: [docs](https://docs.microsoft.com/en-us/azure/azure-arc/data/deploy-active-directory-sql-managed-instance#prepare-sql-managed-instance-spec)
+2 - `sql-ad-yes-1.yaml`: [docs](https://docs.microsoft.com/en-us/azure/azure-arc/data/deploy-active-directory-sql-managed-instance#prepare-sql-managed-instance-spec)
 
 ```yaml
 apiVersion: v1
@@ -562,7 +664,7 @@ spec:
           size: "5"
 ```
 
-We deploy the 3 YAMLs in sequence:
+We deploy the 2 YAMLs in sequence:
 
 ```powershell
 ######################################
@@ -573,9 +675,6 @@ cd "C:\azure-arc"
 # Deploy Active Directory Connector
 kubectl apply -f ActiveDirectoryConnector.yaml
 
-# Deploy keytab secret
-kubectl apply -f sql-ad-yes-1-keytab-secret.yaml
-
 # Deploy MI
 kubectl apply -f sql-ad-yes-1.yaml
 
@@ -584,15 +683,6 @@ kubectl apply -f sql-ad-yes-1.yaml
 $payload = '{\"spec\":{\"ports\":[{\"name\":\"port-mssql-tds\",\"port\":31433,\"targetPort\":1433}]}}'
 kubectl patch svc sql-ad-yes-1-external-svc -n arc --type merge --patch $payload
 ```
-
-<Callout>
-
-I noticed that for `LoadBalancer` deploments, the `31433` specified in the spec above doesn't make it into the K8s Service - rather it shows up as `1433`
-(see screenshot below.) As a workaround, I added the `kubectl patch svc...` to change the Port to `31433` - which is what our `SPN` expects.
-
-For `NodePort` - this worked fine (i.e. `service` was created exposing `31433`.)
-
-</Callout>
 
 We see:
 
@@ -607,6 +697,18 @@ Add-DnsServerResourceRecordA -Name sql-ad-yes-1 -ZoneName contoso.local -IPv4Add
 ```
 
 ![SQL MI DNS entry in dc](images/sqlmi-dns-entry.png)
+
+<Callout>
+
+💡 **DNS Automation**
+
+To avoid this final manual step and perform it synchronously - we need to have our K8s cluster syncing DNS entries with an _external_ DNS provider that our clients (e.g. Windows VMs running SSMS) can use. 
+
+In AKS - we can use [ExternalDNS](https://github.com/kubernetes-sigs/external-dns/blob/master/docs/tutorials/azure.md). Basically, what this means is ExternalDNS will automatically sync the DNS record for the K8s service with a DNS zone in the external DNS provider - e.g. [Azure Private DNS](https://docs.microsoft.com/en-us/azure/dns/private-dns-overview).
+
+If we have an On-Prem DNS provider - we can create a bespoke [Kubernetes Operator](https://kubernetes.io/docs/concepts/extend-kubernetes/operator/) relevant to our setup to automate this final step.
+
+</Callout>
 
 ### Create Windows Logins
 
@@ -629,6 +731,9 @@ Finally, from `client` - we can sign in as a Windows User from SSMS against the 
 
 ![Authentication challenge](images/windows-auth-challenge.png)
 ![Authentication success](images/windows-auth-success.png)
+
+Furthermore, we can use this `ActiveDirectoryConnector` against multiple SQL MIs by repeating the steps above for another SQL MI:
+![Mulitple SQL MIs](images/sqlmi-multiple.png)
 
 Success 👏!
 
