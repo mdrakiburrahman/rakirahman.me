@@ -712,6 +712,7 @@ If we have an On-Prem DNS provider - we can create a bespoke [Kubernetes Operato
 
 ### Create Windows Logins
 
+#### Option 1 - Add AD User
 We login to the SQL MI as our sqlauth user to create the Windows Logins (this can be done via an Operator to automate, prior to disabling the sqlauth user):
 
 ```sql
@@ -723,7 +724,40 @@ ALTER SERVER ROLE [sysadmin] ADD MEMBER [CONTOSO\boor]
 GO
 ```
 
-![Windows login creation in SQL MI](images/windows-login-creation.png)
+![Windows User login creation in SQL MI](images/windows-login-creation.png)
+
+#### Option 2 - Add AD Group
+
+Alternatively, we can add an entire AD Group to the SQL MI - where the Group's membership lifecycle is managed in AD, outside of SQL MI.
+
+In the Domain Controller `dc` - we run:
+``` powershell
+# Create AD Group in existing OU
+New-ADGroup -Name "SQLAdmins" -SamAccountName SQLAdmins -GroupCategory Security -GroupScope Universal -DisplayName "SQL Server Admins" -Path "OU=ArcSQLMI,DC=CONTOSO,DC=LOCAL" -Description "Members of this group are SQL Server Administrators"
+
+# Add local user to group
+Add-ADGroupMember -Identity SQLAdmins -Members boor
+```
+![AD Group creation](images/ad-group-create.png)
+
+And we run the following in the SQL MI to grant access:
+``` sql
+USE [master]
+GO
+CREATE LOGIN [CONTOSO\SQLAdmins] FROM WINDOWS WITH DEFAULT_DATABASE=[master]
+GO
+ALTER SERVER ROLE [sysadmin] ADD MEMBER [CONTOSO\SQLAdmins]
+GO
+```
+
+![Windows Group login creation in SQL MI](images/ad-group-assignment.png)
+
+<Callout>
+
+⚠ Make sure to sign out of Windows in `client` and sign back in before attempting authentication via SSMS - Windows needs to know that the local user we just created is part of the AD Group in order for SSMS to know about it - [see here](https://dba.stackexchange.com/questions/163742/cannot-login-to-sql-server-as-a-member-of-ad-group/279970#279970).
+
+</Callout>
+
 
 ### Windows Auth from Domain Joined machine
 
