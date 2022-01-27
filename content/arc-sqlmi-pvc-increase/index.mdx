@@ -15,6 +15,12 @@ import { ExtLink, InlinePageLink } from "../../src/components/atoms.js"
 Kubernetes supports the ability to increase the size of a PVC [see here](https://kubernetes.io/blog/2018/07/12/resizing-persistent-volumes-using-kubernetes/) - this is great!
 Kubernetes **_does not_** support the ability to increase the size of a PVC that's attached to a `StatefulSet` [see here](https://github.com/kubernetes/kubernetes/issues/68737) - not so great.
 
+<Callout>
+
+⚠ These techniques/tools are from **exploration only** - for official Microsoft content - please refer to the [Arc Documentation](https://docs.microsoft.com/en-us/azure/azure-arc/data/).
+
+</Callout>
+
 That means if your SQL MI - which is part of a `StatefulSet` - mounted volumes run out of size, or need more size - you need to follow these steps:
 1. Scale `StatefulSet` to **1 → 0**
 2. Change 4 PVCs from **5Gi → 20Gi**
