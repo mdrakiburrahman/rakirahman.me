@@ -10,5 +10,3 @@ sudo chown -R vscode:sudo /usr/local/share/nvm
 # Node Packages
 npm install -g gatsby-cli@2.12.21
 npm install
-
-git clean -fdx
