@@ -18,9 +18,9 @@ const About = _ => {
             - I'm Raki Rahman
           </h2>
           <p>
-            I'm a <strong>Data & AI</strong> Cloud Solutions Architect at{" "}
-            <ExtLink link="https://www.microsoft.com/en-ca">
-              <strong>Microsoft</strong>
+            I'm a <strong>Software Engineer</strong> at Microsoft, building{" "}
+            <ExtLink link="https://azure.microsoft.com/en-us/products/azure-arc/hybrid-data-services">
+              <strong>Azure Arc-enabled Data Services</strong>
             </ExtLink>{" "}
             - currently based out of Toronto, Canada.
           </p>
@@ -31,10 +31,30 @@ const About = _ => {
             <ExtLink link="https://engsci.utoronto.ca/program/what-is-engsci/">
               <strong>EngSci</strong>
             </ExtLink>{" "}
-            program as an <strong>Aerospace Engineer</strong>, I've worked at
-            leading Technology Consulting firms in driving Azure Cloud
-            Transformations across some of the largest Enterprise Clients in
-            North America.
+            program as an <strong>Aerospace Engineer</strong> in 2016, I started
+            my career as a <strong>Software Engineer</strong> building{" "}
+            <ExtLink link="https://en.wikipedia.org/wiki/Numerical_control">
+              <strong>CNC</strong>
+            </ExtLink>{" "}
+            and{" "}
+            <ExtLink link="https://en.wikipedia.org/wiki/Enterprise_resource_planning">
+              <strong>ERP</strong>
+            </ExtLink>{" "}
+            Software for a Robotics Manufacturing Firm. From there, I worked at
+            leading Technology Consulting firms{" "}
+            <ExtLink link="https://www.accenture.com/ca-en">[1]</ExtLink>{" "}
+            <ExtLink link="https://www.slalom.com/">[2]</ExtLink> in driving
+            Cloud, DevOps and Data Platform Transformations across some of the
+            largest Enterprise Clients in North America. I then dove into{" "}
+            <strong>Data Engineering and Machine Learning</strong> for a couple
+            of years, all of which intensified a few notches after I joined
+            Microsoft's Customer Success Unit as a{" "}
+            <strong>Cloud Solution Architect</strong> in 2020.
+          </p>
+          <p>
+            As of 2022, I'm back again to my Software Engineering roots, this
+            time, extending Azure's Control Plane to Kubernetes to host robust{" "}
+            <strong>Database Engines in Hybrid Clouds</strong>.
           </p>
           <h2>Why Data?</h2>
           <p>I've been working with Computers for as long as I can remember.</p>
@@ -43,10 +63,10 @@ const About = _ => {
             a hobby. As I learned to code, this hobby developed into a deep,
             self-taught expertise of how computer hardware interacts with the
             hypervisor layer to solve real-life problems. Coupled with the
-            practically infinite computing power of the Cloud for processing Big
-            Data, I realized the frontier of growth in this field is endless.
-            Applied correctly, we have the opportunity here to completely shape
-            the world for the better.
+            practically infinite applications of technology and data, I realized
+            the frontier of growth in this field is endless. Applied correctly,
+            we have the opportunity here to completely shape the world for the
+            better.
           </p>
           <p>
             Plus I get to build a pretty entertaining career out of it too{" "}
@@ -77,8 +97,8 @@ const About = _ => {
             this blog as a fun side project.
           </p>
           <p>
-            So basically, this blog is a channel for me to keep my coding skills
-            from getting rusty, while also giving back to the Data community!
+            So basically, this blog is a channel for me to have some fun, while
+            also giving back to the Data community!
           </p>
         </article>
       </div>
