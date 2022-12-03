@@ -73,8 +73,8 @@
   },
   // Exclude these folders with large number of files from file watching
   "files.watcherExclude": {
-    "**/node_modules/**": true,
-    "**/public/**": true
+    "node_modules/**": true,
+    "public/**": true
   },
   // Add the IDs of extensions you want installed when the container is created.
   "extensions": [
