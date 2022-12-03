@@ -1,0 +1,97 @@
+{
+  "name": "Ubuntu",
+  "build": {
+    "dockerfile": "Dockerfile"
+  },
+  "runArgs": [
+    // Secret injection as environment variables
+    // https://code.visualstudio.com/remote/advancedcontainers/environment-variables#_option-2-use-an-env-file
+    // Currently, VSCode does not gracefully handle the case if .env is absent - so we keep the line commented.
+    // https://github.com/microsoft/vscode-remote-release/issues/3007
+    // To use this, ensure .env file is present, and uncomment line below:
+    //
+    // "--env-file=.devcontainer/.env"
+  ],
+  // Features to add into the container following the new proposed specification
+  // https://github.com/devcontainers/features
+  "features": {
+    "ghcr.io/devcontainers/features/azure-cli:1": {
+      "version": "latest"
+    },
+    "ghcr.io/devcontainers/features/common-utils:1": {
+      "username": "automatic",
+      "uid": "automatic",
+      "gid": "automatic",
+      "installZsh": true,
+      "installOhMyZsh": true,
+      "upgradePackages": true,
+      "nonFreePackages": false
+    },
+    "ghcr.io/devcontainers/features/git:1": {
+      "version": "os-provided",
+      "ppa": false
+    },
+    "ghcr.io/devcontainers/features/node:1": {
+      "version": "14.2.0",
+      "nodeGypDependencies": true
+    }
+  },
+  // Various mounting, run, post-create, and user settings
+  "containerEnv": {
+    "SSH_AUTH_SOCK": "{localEnv:SSH_AUTH_SOCK}"
+  },
+  "postCreateCommand": "/tmp/scripts/post-create-commands.sh",
+  "postAttachCommand": "/tmp/scripts/post-attach-commands.sh",
+  "remoteUser": "vscode",
+  "containerUser": "vscode",
+  // Set *default* container specific settings.json values on container create.
+  "settings": {
+    // Editor
+    "editor.formatOnType": true,
+    "editor.formatOnSave": true,
+    // Terminal
+    "terminal.integrated.profiles.linux": {
+      "bash": {
+        "path": "bash"
+      },
+      "zsh": {
+        "path": "zsh"
+      },
+      "fish": {
+        "path": "fish"
+      },
+      "tmux": {
+        "path": "tmux",
+        "icon": "terminal-tmux"
+      },
+      "pwsh": {
+        "path": "pwsh",
+        "icon": "terminal-powershell"
+      }
+    },
+    "terminal.integrated.defaultProfile.linux": "bash"
+  },
+  // Exclude these folders with large number of files from file watching
+  "files.watcherExclude": {
+    "node_modules/**": true,
+    "public/**": true
+  },
+  // Add the IDs of extensions you want installed when the container is created.
+  "extensions": [
+    "DavidAnson.vscode-markdownlint", // Linter for markdown files
+    "donjayamanne.githistory", // Enhanced git history experience
+    "eamodio.gitlens", // Visualize git commits and more
+    "streetsidesoftware.code-spell-checker", // Spell checks your code
+    "waderyan.gitblame", // Enhances git blame experience
+    "shd101wyy.markdown-preview-enhanced", // Enhanced markdown previewer
+    "Gruntfuggly.todo-tree", // Highlights TODO comments in code
+    "github.copilot", // Copilot integration
+    "spikespaz.vscode-smoothtype", // Smooth cursor animation
+    "IBM.output-colorizer", // Colorize your output/test logs
+    "stkb.rewrap", // "Alt + Q" -> rewrap comments after n characters on one line
+    "tyriar.sort-lines", // "Ctrl + Shift + P -> Sort lines" -> sort lines alphabetically
+    "esbenp.prettier-vscode", // A pretty good formatter for many languages
+    "marp-team.marp-vscode", // PowerPoints - but with code
+    "huntertran.auto-markdown-toc" // Auto-generated Markdown Table of Contents
+  ]
+}
