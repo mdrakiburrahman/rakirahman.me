@@ -14,7 +14,7 @@ import { ExtLink, InlinePageLink } from "../../src/components/atoms.js"
 
 <Callout>
 
-In this article, I wanted to share a transparent view into what I observed regarding SQL Server Availability Group resiliency when I threw the absolute worst types of creative infrastructure failures I could think of at a 3-replica Arc-SQL MI Business Critical instance.
+In this article, I wanted to share observations about SQL Server Availability Group resiliency when I threw the absolute worst types of Kubernetes infrastructure failures I could think of at a 3-replica Arc-SQL MI Business Critical instance.
 
 Please, do not try any of this in Production.
 
@@ -55,13 +55,13 @@ The key to try and make a system miserably fail is to first understand it's arch
 
 - Basically, Arc-SQL MI Business Critical tier, besides wrapping all SQL replicas behind an Availability Group Listener, comes with a dedicated [Kubernetes Operator](https://kubernetes.io/docs/concepts/extend-kubernetes/operator/) called the `arc-ha-orchestrator`.
 
-  - Basically, an Operator is a dedicated piece of computer program responsible for monitoring the health state of some system it "operates", based on some system specific [Finite-state machine](https://en.wikipedia.org/wiki/Finite-state_machine) definition (basically, business logic).
+  - An Operator is a dedicated piece of computer program responsible for monitoring the health state of some system it "operates", based on some system specific [Finite-state machine](https://en.wikipedia.org/wiki/Finite-state_machine) definition (basically, business logic).
 
-    It then uses the observed signals to figure out the Current-State, and perform some small, pre-defined, intelligent actions to "nudge" (not force), the system towards a healthy (i.e. Desired) state. That system could be anything, SQL Server health, a pendulum, a self-driving car etc.
+    It then uses the observed signals to figure out the Current-State, and perform some small, pre-defined, intelligent actions to "nudge" (rather than force), the system towards a healthy (i.e. Desired) state. That system could be anything, SQL Server health, a pendulum, a self-driving car etc.
 
-    - Basically, Kubernetes Operators are a very elaborate application of [PID Controllers in Electronics](https://en.wikipedia.org/wiki/PID_controller#Fundamental_operation) that have been around since 1920s. Actually, all of Kubernetes is built on applying this idea as code.
+    - Kubernetes Operators are a very elaborate application of [PID Controllers in Electronics](https://en.wikipedia.org/wiki/PID_controller#Fundamental_operation) that have been around since 1920s. Actually, all of Kubernetes is built on applying this idea as code.
 
-  - The `arc-ha-orchestrator`'s sole responsibility is doing everything within it's power to monitor and maintain the health of the SQL Server Availability Group it manages. It is the operator's life's mission to ensure, the AG never gets into an irrecoverable, i.e. corrupt state. If it senses this is about to happen, it will do whatever actions it has within it's arsenal, to ensure the State Machine never gets into a corrupt state that cannot be recovered from.
+  - The `arc-ha-orchestrator`'s sole responsibility is doing everything within it's power to monitor and maintain the health of the SQL Server Availability Group it manages. It is the operator's life's mission to ensure the AG never gets into an irrecoverable, i.e. corrupt state. If it senses this is about to happen, it will do whatever actions it has within it's arsenal, to ensure the State Machine never gets into a corrupt state that cannot be recovered from. The way this is implemented is similar to the [Paxos protocol](<https://en.wikipedia.org/wiki/Paxos_(computer_science)>).
 
 This is the best visual analogy I can think of to visualize the `arc-ha-orchestrator`'s responsibility (that is, if SQL Server Availability Group was an inverted pendulum we were trying to keep perfectly balanced while fighting Physics):
 
@@ -75,19 +75,67 @@ So comparing the responsibilities:
 | Inverted Pendulum     | Uses signals from it's various sensors to keep the inverted pendulum perfectly balanced upright, despite abnormal turbulence from the ruler. If the pendulum is slapped _really, really hard_ and knocked over to the point where it keeps spinning - although the Motor isn't physically powerful enough to prevent the slap's immediate after effects, after the spinning eventually stops, the operator (motor), and the system it manages (pendulum), is resilient enough to bring the pendulum back up in a healthy, upright state, on command/automatically (assuming no intentional, permanent physical damage to it's motors or hinges).                                                                                                                                                                                                                                                                                                                                                                                                                                   | Physics, and the guy with the ruler knocking things around                                     |
 | `arc-ha-orchestrator` | Uses DMV queries, AG [`sequence_number`](https://learn.microsoft.com/en-us/sql/linux/sql-server-linux-availability-group-ha?view=sql-server-ver16#understand-sql-server-resource-agent-for-pacemaker) and other metadata as heartbeat, Pod health and other signals from each SQL replica to keep SQL Server Availability Group in a healthy, accessible, uncorrupted state based on observed health. If the SQL Server replicas are slapped _really, really hard_ (no more quorum, 2/3 replicas have their plugs pulled, data loss becomes possible if the remaining 1/3 replicas allow connections), the Operator has the power to deny connectivity to the AG listener, and once replicas `sqlservr.exe`s come up, brings the replicas back to it's `HEALTHY` state automatically after the turbulent effects settle down - all while ensuring no acknowledged transactions is lost (assuming someone didn't go into the Container and deliberately delete files, or bypass the AG listener and connect to the single instances and start creating/deleting transactions etc.). | Infrastructure failures (also Physics) the guy with the Chaos Mesh CRDs knocking things around |
 
-### Arc-SQL MI Business Critical Architecture
+### HA Architecture
 
-`TODO: Diagram`
+It's probably not an overstatement to say that SQL Server is probably the most extensively documented consumer product out there. So instead, we focus on the key **integration points** that serves as the lifeline signals of the system, below:
 
-`TODO: Some queries that HA orchestrator runs, sample configMap`
+![High Availability Architecture (Left click to zoom, opens in new tab)](images/miaa-ha-architecture.png)
 
-### Arc-SQL MI Business Critical Architecture - failure overlay
+In short:
 
-`TODO: Diagram overlay with failure emojis`
+- Several well known DMVs are used to determine the health state of the Availability Group
+- As `arc-ha-orchestrator` is a completely stateless app (we will test the validity of this statement 😉) [`ConfigMaps`](https://kubernetes.io/docs/concepts/configuration/configmap/) are used for storing the various system states, including that of the Finite-state machine.
+- [`Labels`](https://kubernetes.io/docs/concepts/overview/working-with-objects/labels/) are used to route traffic between the Kubernetes External [`Service`](https://kubernetes.io/docs/concepts/services-networking/service/) to the appropriate Availability Group Replica. In scenarios where replicas are resolving, labels are removed and then reapplied after the Paxos transition is successful.
 
-## Chaos Mesh, quick intro
+### HA Architecture - failure overlay
 
-`TODO: Some gists, helm scripts`
+One important point I learned about System Failure, is that it's actually not that stressful on the High Availability system when a key integration point is _100% inaccessible_ for prolonged durations.
+
+For example, if we completely shut down the Operator's network acces to `ConfigMaps` (i.e. to [Kubernetes API Server](https://kubernetes.io/docs/concepts/overview/kubernetes-api/)), the internal exception handling mechanism dictates that it simply just sits there and refuses to perform State Transitions until it has the necessary Current State data it needs to transition (from the appropriate `ConfigMaps`). If it doesn't perform transitions, the system remains in the dormant, current state (which is good, the system remains stable, the database remains safe from data loss.)
+
+The same observation applies to `sqlservr.exe`. As tempting as it may be to completely simulate 100% corrupttion of `/var/opt/mssql/data`, or inject 20 seconds of latency per R/W operation, SQL simply crashes and refuses to start up in these hazardous conditions.
+
+Therefore, if we want to try and influence the Operator or SQL Server to make faulty decisions, it's important to inject periodic, pointed, _partial_ failures - in some specific sequence, or in parallel.
+
+<Callout>
+
+👊 The equivalent of this in the Pendulum video is, the ruler is _nudging_ the pendulum, not punching it.
+
+</Callout>
+
+So looking at the architecture diagram, we can identify hypothetical failure points, to serve as the basis of our Chaos Test:
+
+![High Availability - Failure points (Left click to zoom, opens in new tab)](images/miaa-ha-architecture-failure-points.png)
+
+Knowing the fact that the Operator depends on `ConfigMaps` to store state, it would have been wicked fun to update the content of the `ConfigMap` with garbage payloads and see how the Operator reacts. But unfortunately, since that violates the rules (equivalent to breaking the pendulum motor), we make do with the next best strategy - referring to the diagram annotations:
+
+1. Setup a User Database with a simple table, that gets onboarded into the Availability Group.
+2. A mechanism to sporadically, and/or continuously, rapid insert transactions into the User Database (e.g. multiple write workloads, with infinite loops)
+3. This one is a fun one. Since Arc SQL MI supports user initiated manual failovers - i.e.:
+
+   ```SQL
+   ALTER AVAILABILITY GROUP current SET (ROLE = SECONDARY)
+   ```
+
+   We should have some compute that can repeatedly demand failovers from replica to replica, all while writes are happening in 2.
+
+4. Compared to everything else, this isn't really stressful, but some read workload from secondary.
+
+5. SQL Replica to Replica network corruption, duplicates, increased latency and packet loss. The idea here is to throw off [replica seeding](https://learn.microsoft.com/en-us/sql/database-engine/availability-groups/windows/automatic-seeding-secondary-replicas?view=sql-server-ver16)
+
+6. Inject R/W latency into Storage at `/var/opt/mssql/**`.
+7. Partially block the Operator's access to APIServer, which impacts the watcher, and ability to read or update state `ConfigMap`s
+8. Partially block 2-way access from Replicas to Operator, which also impacts receiving heartbeats.
+
+The idea is, if the system can survive this onslaught of failures, it's probably pretty resilient.
+
+## Chaos Mesh - introduction
+
+Chaos Mesh is Chaos Engineering Platform built for Kubernetes, an Open-Source [CNCF project](https://www.cncf.io/projects/chaosmesh/), that was created by the founders of [TiDB](https://www.pingcap.com/), a distributed HTAP Database. The founders created the project over the last few years to stress test their Database Engine, which is why it's an amazing fit for SQL Server as well (being a Database Engine, similar failure points).
+
+In short, Chaos mesh is easily [installable via helm](https://chaos-mesh.org/docs/production-installation-using-helm/), and comes with a variety of [failure injection CRDs](https://github.com/chaos-mesh/chaos-mesh#chaos-operator) that line up with the failure overlay above.
+
+The component that makes Chaos Mesh extra-special is, it's possible to create elaborate, no-code experiments using a workflow-based UI, then export out the Custom Resources as a YAML manifest, which means the same experiment can be automated as part of any Continuous Integration pipeline. The concept is identical to [Argo Workflows](https://argoproj.github.io/argo-workflows/), and was actually [inspired by Argo](https://chaos-mesh.org/docs/create-chaos-mesh-workflow/).
 
 ## Chaos Experiment
 
