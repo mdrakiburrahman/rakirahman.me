@@ -1,0 +1,131 @@
+---
+title: Chaos Testing Arc SQL MI High Availability
+date: 2022-12-03
+published: true
+tags: ["Azure Arc", "Kubernetes", "SQL MI", "Availability Group", "Chaos Mesh"]
+description: Using Chaos Mesh on Kubernetes to give SQL Server Availability Groups a hard time
+toc: true
+seoImage: "og-arc-sqlmi-chaos-mesh.png"
+featuredImage: "./featured-image.png"
+---
+
+import { Callout } from "../../src/components/atoms.js"
+import { ExtLink, InlinePageLink } from "../../src/components/atoms.js"
+
+<Callout>
+
+In this article, I wanted to share a transparent view into what I observed regarding SQL Server Availability Group resiliency when I threw the absolute worst types of creative infrastructure failures I could think of at a 3-replica Arc-SQL MI Business Critical instance.
+
+Please, do not try any of this in Production.
+
+Also, none of the content or code presented here is official guidance or recommendation from Microsoft. It is presented for educational purposes only, mostly for entertainment 😄.
+
+</Callout>
+
+Synchronous Transaction Replication and resilient replica recovery is something only a handful of Database Products have built up as a core-feature over the years, many top rankers in [this list](https://db-engines.com/en/ranking) do not have an answer to this difficult problem. Even the one's that do have a documented solution, it's pretty hard to compare and contrast how good the implementation _actually_ is from studying docs/POC/demo, without either:
+
+- Living with them in Production for a while and accmulating lessons learned (or scars, if you asked a DBA); or,
+- Observing the system behavior under _intense_ stress, and the worst-imaginable failure conditions possible
+
+Previously in my career, I had only on set up [Availability Groups or "AGs"](https://learn.microsoft.com/en-us/sql/database-engine/availability-groups/windows/overview-of-always-on-availability-groups-sql-server?view=sql-server-ver16) on Windows (AGs are basically SQL Server's answer to resiliency guarantees in case of engine-level failure). Besides running [some one-off T-SQL commands](https://learn.microsoft.com/en-us/sql/database-engine/availability-groups/windows/perform-a-planned-manual-failover-of-an-availability-group-sql-server?view=sql-server-ver16) to manually failover/failback, there was always a "fear of the unknown" in my mind, regarding what would _actually_ happen, in case the underlying system and it's dependents completely fell over sideways, with cascading failures. I also wasn't familiar with how to systematicaly orchestrate drastic failures in Windows at-scale, besides restarting a couple VMs or restarting `sqlservr.exe` from [`services.msc`](https://www.minitool.com/news/how-to-open-windows-services.html) etc.
+
+So recently, I was tasked with trying my absolute best _to break_ SQL Server Availability Group by any means possible. The definition of broken is:
+
+<Callout>
+
+"_Do whatever you want to the system (besides deleting `mdf/ldf` files etc., AKA permanent failures), for any duration of time, with the end goal of leaving the system in a state where it cannot self-heal, and requires manual intervention (e.g. intelligently crafted T-SQL commands that must be manually run by some human being)._
+
+_If it requires manual intervention, the system is broken, and that's a major bug._"
+
+</Callout>
+
+This time, I had Kubernetes on my side, with the SQL engine running in disposable Linux containers ([Arc SQL MI Business-Critical Tier](https://learn.microsoft.com/en-us/azure/azure-arc/data/service-tiers#service-tier-comparison)), and the latest-and-greatest Chaos Engineering software from CNCF - called [Chaos Mesh](https://www.cncf.io/projects/chaosmesh/) - offering many novel [Custom Resource Defintions](https://github.com/chaos-mesh/chaos-mesh#chaos-operator) that can be used to declare layers upon layers of controlled, systematic degradations (rather than one-off imperative scripts with a single entry and exit point like, restarting a VM, then moving on to cause some other mischief in a linear fashion, etc.).
+
+Having [pondered about questions like this](https://www.reddit.com/r/kubernetes/comments/tfga4y/eli5_why_is_it_not_advisable_to_run_databases_in/) about the scary unknowns of hosting data inside ephemeral containers (K8s Pods), I was feeling pretty good about my chances of discovering a failure-mode that triumphed `sqlservr.exe`(s).
+
+## High Availability Architecture and possible faliure points
+
+<Callout>
+
+The key to try and make a system miserably fail is to first understand it's architecture and key lifelines. That way, the kinds of failures we can produce _really_ try to hurt the system by cutting off one or more of those lifelines.
+
+</Callout>
+
+### HA Kubernetes Operator and Pendulum Analogy
+
+- Basically, Arc-SQL MI Business Critical tier, besides wrapping all SQL replicas behind an Availability Group Listener, comes with a dedicated [Kubernetes Operator](https://kubernetes.io/docs/concepts/extend-kubernetes/operator/) called the `arc-ha-orchestrator`.
+
+  - Basically, an Operator is a dedicated piece of computer program responsible for monitoring the health state of some system it "operates", based on some system specific [Finite-state machine](https://en.wikipedia.org/wiki/Finite-state_machine) definition (basically, business logic).
+
+    It then uses the observed signals to figure out the Current-State, and perform some small, pre-defined, intelligent actions to "nudge" (not force), the system towards a healthy (i.e. Desired) state. That system could be anything, SQL Server health, a pendulum, a self-driving car etc.
+
+    - Basically, Kubernetes Operators are a very elaborate application of [PID Controllers in Electronics](https://en.wikipedia.org/wiki/PID_controller#Fundamental_operation) that have been around since 1920s. Actually, all of Kubernetes is built on applying this idea as code.
+
+  - The `arc-ha-orchestrator`'s sole responsibility is doing everything within it's power to monitor and maintain the health of the SQL Server Availability Group it manages. It is the operator's life's mission to ensure, the AG never gets into an irrecoverable, i.e. corrupt state. If it senses this is about to happen, it will do whatever actions it has within it's arsenal, to ensure the State Machine never gets into a corrupt state that cannot be recovered from.
+
+This is the best visual analogy I can think of to visualize the `arc-ha-orchestrator`'s responsibility (that is, if SQL Server Availability Group was an inverted pendulum we were trying to keep perfectly balanced while fighting Physics):
+
+`youtube:https://www.youtube.com/embed/meMWfva-Jio`
+
+So comparing the responsibilities:
+
+| C1                    | C2                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                 | C3                                                                                             |
+| --------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------- |
+| `Operator`            | `Responsibility`                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                   | `Enemy`                                                                                        |
+| Inverted Pendulum     | Uses signals from it's various sensors to keep the inverted pendulum perfectly balanced upright, despite abnormal turbulence from the ruler. If the pendulum is slapped _really, really hard_ and knocked over to the point where it keeps spinning - although the Motor isn't physically powerful enough to prevent the slap's immediate after effects, after the spinning eventually stops, the operator (motor), and the system it manages (pendulum), is resilient enough to bring the pendulum back up in a healthy, upright state, on command/automatically (assuming no intentional, permanent physical damage to it's motors or hinges).                                                                                                                                                                                                                                                                                                                                                                                                                                   | Physics, and the guy with the ruler knocking things around                                     |
+| `arc-ha-orchestrator` | Uses DMV queries, AG [`sequence_number`](https://learn.microsoft.com/en-us/sql/linux/sql-server-linux-availability-group-ha?view=sql-server-ver16#understand-sql-server-resource-agent-for-pacemaker) and other metadata as heartbeat, Pod health and other signals from each SQL replica to keep SQL Server Availability Group in a healthy, accessible, uncorrupted state based on observed health. If the SQL Server replicas are slapped _really, really hard_ (no more quorum, 2/3 replicas have their plugs pulled, data loss becomes possible if the remaining 1/3 replicas allow connections), the Operator has the power to deny connectivity to the AG listener, and once replicas `sqlservr.exe`s come up, brings the replicas back to it's `HEALTHY` state automatically after the turbulent effects settle down - all while ensuring no acknowledged transactions is lost (assuming someone didn't go into the Container and deliberately delete files, or bypass the AG listener and connect to the single instances and start creating/deleting transactions etc.). | Infrastructure failures (also Physics) the guy with the Chaos Mesh CRDs knocking things around |
+
+### Arc-SQL MI Business Critical Architecture
+
+`TODO: Diagram`
+
+`TODO: Some queries that HA orchestrator runs, sample configMap`
+
+### Arc-SQL MI Business Critical Architecture - failure overlay
+
+`TODO: Diagram overlay with failure emojis`
+
+## Chaos Mesh, quick intro
+
+`TODO: Some gists, helm scripts`
+
+## Chaos Experiment
+
+### Generating the experiment
+
+`TODO: UI overlay with failure emojis`
+
+### The code: YAML, util classes and scripts
+
+<Callout>
+
+Using the UI to create the creative failure experiment, then pulling out the YAML is key, because now, we can run this as many times as we want, and we have the experiment definition in source-control (i.e. we can build up more failures).
+
+</Callout>
+
+Creating the SQL MI:
+
+```bash
+az sql mi-arc create -n chaos-bc \
+                    --cores-request 1 \
+                    --cores-limit 1 \
+                    --memory-request 2Gi \
+                    --memory-limit 2Gi \
+                    --tier BusinessCritical \
+                    --replicas 3 \
+                    --resource-group ...
+```
+
+- Something something you'll notice my YAML is much, much longer compared to the examples in the official git repo
+
+### Demo
+
+#### Observations
+
+- Before
+- During Chaos
+- After
+
+## Conclusion
+
+Something something SQL Server wins this time.
