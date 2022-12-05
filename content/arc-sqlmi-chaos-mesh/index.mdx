@@ -1,8 +1,9 @@
 ---
-title: Chaos Testing Arc SQL MI High Availability
-date: 2022-12-03
+title: Chaos Testing Azure Arc-enabled SQL Managed Instance's High Availability
+date: 2022-12-05
 published: true
-tags: ["Azure Arc", "Kubernetes", "SQL MI", "Availability Group", "Chaos Mesh"]
+tags:
+  ["Azure Arc", "Kubernetes", "SQL Server", "Availability Group", "Chaos Mesh"]
 description: Using Chaos Mesh on Kubernetes to give SQL Server Availability Groups a hard time
 toc: true
 seoImage: "og-arc-sqlmi-chaos-mesh.png"
@@ -14,7 +15,7 @@ import { ExtLink, InlinePageLink } from "../../src/components/atoms.js"
 
 <Callout>
 
-In this article, we challenge SQL Server Availability Group's resiliency by throwing the absolute worst types of Kubernetes infrastructure failures at a 3-replica Arc-SQL MI Business Critical instance.
+In this article, we challenge [SQL Server Availability Group](https://learn.microsoft.com/en-us/sql/database-engine/availability-groups/windows/overview-of-always-on-availability-groups-sql-server?view=sql-server-ver16)'s resiliency by throwing the absolute worst types of Kubernetes infrastructure failures at a 3-replica, Business Critical tier of [Azure Arc-enabled SQL Managed Instance](https://learn.microsoft.com/en-us/azure/azure-arc/data/managed-instance-overview), using a CNCF Project called [Chaos Mesh](https://www.cncf.io/projects/chaosmesh/).
 
 Please, do not try any of this in Production.
 
@@ -39,7 +40,7 @@ _If it requires manual intervention, the system is broken, and that's a major bu
 
 </Callout>
 
-This time, I had Kubernetes on my side, with the SQL engine running in disposable Linux containers ([Arc SQL MI Business-Critical Tier](https://learn.microsoft.com/en-us/azure/azure-arc/data/service-tiers#service-tier-comparison)), and the latest-and-greatest Chaos Engineering software from CNCF - called [Chaos Mesh](https://www.cncf.io/projects/chaosmesh/) - offering many novel [Custom Resource Defintions](https://github.com/chaos-mesh/chaos-mesh#chaos-operator) that can be used to declare layers upon layers of controlled, systematic degradations (rather than one-off imperative scripts with a single entry and exit point like, restarting a VM, then moving on to cause some other mischief in a linear fashion, etc.).
+This time, I had Kubernetes on my side, with the SQL engine running in disposable Linux containers ([Azure Arc-enabled SQL Managed Instance, Business-Critical Tier](https://learn.microsoft.com/en-us/azure/azure-arc/data/service-tiers#service-tier-comparison)), and the latest-and-greatest Chaos Engineering software from CNCF - called [Chaos Mesh](https://www.cncf.io/projects/chaosmesh/) - offering many novel [Custom Resource Defintions](https://github.com/chaos-mesh/chaos-mesh#chaos-operator) that can be used to declare layers upon layers of controlled, systematic degradations (rather than one-off imperative scripts with a single entry and exit point like, restarting a VM, then moving on to cause some other mischief in a linear fashion, etc.).
 
 Having [pondered about questions like this](https://www.reddit.com/r/kubernetes/comments/tfga4y/eli5_why_is_it_not_advisable_to_run_databases_in/) about the scary unknowns of hosting data inside ephemeral containers (K8s Pods), I was feeling pretty good about my chances of discovering a failure-mode that triumphed `sqlservr.exe`(s).
 
@@ -53,7 +54,7 @@ The key to try and make a system miserably fail is to first understand it's arch
 
 ### HA Kubernetes Operator and Pendulum Analogy
 
-- Arc-SQL MI Business Critical tier, besides wrapping all SQL replicas behind an Availability Group Listener, comes with a dedicated [Kubernetes Operator](https://kubernetes.io/docs/concepts/extend-kubernetes/operator/) called the `arc-ha-orchestrator`.
+- Azure Arc-enabled SQL Managed Instance Business Critical tier, besides wrapping all SQL replicas behind an Availability Group Listener, comes with a dedicated [Kubernetes Operator](https://kubernetes.io/docs/concepts/extend-kubernetes/operator/) called the `arc-ha-orchestrator`.
 
   - An Operator is a dedicated piece of computer program responsible for monitoring the health state of some system it "operates", based on some system specific [Finite-state machine](https://en.wikipedia.org/wiki/Finite-state_machine) definition (basically, business logic).
 
@@ -77,15 +78,21 @@ So comparing the responsibilities:
 
 ### HA Architecture
 
-It's probably not an overstatement that SQL Server is probably the most extensively documented consumer product out there. So instead of discussing the well-known mechanics of Availability Groups, we focus on the key **integration points** that serves as the lifeline signals in Arc SQL MI High Availability, annotated below:
+[SQL Server Availability Groups](https://learn.microsoft.com/en-us/sql/database-engine/availability-groups/windows/overview-of-always-on-availability-groups-sql-server?view=sql-server-ver16) is an _extensively_ documented product (both from Microsoft - [example](https://learn.microsoft.com/en-us/sql/database-engine/availability-groups/windows/always-on-availability-groups-troubleshooting-and-monitoring-guide?view=sql-server-ver16), and from the SQL Server community - [example](https://www.sqlshack.com/lease-timeouts-and-health-checks-in-sql-server-always-on-availability-groups/)). So instead of discussing the well-known mechanics, we focus on the key **integration points** that serves as the lifeline signals in Azure Arc-enabled SQL Managed Instance's High Availability Automation on Kubernetes, annotated below:
 
 ![High Availability Architecture (Left click to zoom, opens in new tab)](images/miaa-ha-architecture.png)
 
 In short:
 
-- Several well known DMVs and Stored Procs are used to determine the health state of the Availability Group and Replica
+- Several well known DMVs (e.g. [`sys.dm_hadr_database_replica_states`](https://learn.microsoft.com/en-us/sql/relational-databases/system-dynamic-management-views/sys-dm-hadr-database-replica-states-transact-sql?view=azuresqldb-current)) and Stored Procs (e.g. [`sp_server_diagnostics`](https://learn.microsoft.com/en-us/sql/relational-databases/system-stored-procedures/sp-server-diagnostics-transact-sql?view=sql-server-ver16)) are used to determine the health state of the Availability Group and Replica
 - As `arc-ha-orchestrator` is a completely stateless app (we will test the validity of this statement 😉) [`ConfigMaps`](https://kubernetes.io/docs/concepts/configuration/configmap/) are used for storing the various system states, including that of the Finite-state machine.
 - [`Labels`](https://kubernetes.io/docs/concepts/overview/working-with-objects/labels/) are used to route traffic between the Kubernetes External [`Service`](https://kubernetes.io/docs/concepts/services-networking/service/) to the appropriate Availability Group Replica. In scenarios where replicas are resolving, labels are removed and then reapplied after the Paxos transition is successful.
+
+<Callout>
+
+💡 Note that we can actually deploy _multiple_ replicas of `arc-ha-orchestrator` for High-Availability of the Operator itself using [`--orchestrator-replicas`](https://learn.microsoft.com/en-us/cli/azure/sql/mi-arc?view=azure-cli-latest) flag - we're not doing that here to give the single Operator a hard time.
+
+</Callout>
 
 ### HA Architecture - failure overlay
 
@@ -111,7 +118,7 @@ Knowing the fact that the Operator depends on `ConfigMaps` to store state, it wo
 
 1. Setup a User Database with a simple table, that gets onboarded into the Availability Group.
 2. A mechanism to sporadically, and/or continuously, rapid insert transactions into the User Database (e.g. multiple write workloads, with infinite loops)
-3. This one is a fun one. Since Arc SQL MI supports user initiated manual failovers - i.e.:
+3. This one is a fun one. Since Azure Arc-enabled SQL Managed Instance supports user initiated manual failovers - i.e.:
 
    ```SQL
    ALTER AVAILABILITY GROUP current SET (ROLE = SECONDARY)
@@ -163,7 +170,7 @@ This workflow manifest basically combines a majority of the [official examples a
 
 - Running the Chaos experiment is a two-step process.
 
-**Step 1:** Create the SQL MI (~3 minutes):
+**Step 1:** Create the SQL instance (~3 minutes):
 
 ```bash
 az sql mi-arc create -n chaos-bc \
@@ -182,7 +189,7 @@ az sql mi-arc create -n chaos-bc \
 kubectl apply -f sqlinstance-ha.yaml
 ```
 
-The manifest targets the SQL MI `chaos-bc` using label selectors that are part of the manifest.
+The manifest targets the `chaos-bc` instance using label selectors that are part of the manifest.
 
 <Callout>
 
@@ -196,7 +203,7 @@ From here, it's easy to capture this manifest and integrate into any CI/CD pipel
 
 The end-to-end Chaos experiment execution is demonstrated here:
 
-`youtube:https://www.youtube.com/embed/wdj5NB_ligM`
+`youtube:https://www.youtube.com/embed/4OfM7e6fi08`
 
 <Callout>
 
