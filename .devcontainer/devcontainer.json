@@ -92,6 +92,7 @@
     "tyriar.sort-lines", // "Ctrl + Shift + P -> Sort lines" -> sort lines alphabetically
     "esbenp.prettier-vscode", // A pretty good formatter for many languages
     "marp-team.marp-vscode", // PowerPoints - but with code
-    "huntertran.auto-markdown-toc" // Auto-generated Markdown Table of Contents
+    "huntertran.auto-markdown-toc", // Auto-generated Markdown Table of Contents
+    "xyc.vscode-mdx-preview" // MDX previewer, just like markdown previewer
   ]
 }
