@@ -1,4 +1,4 @@
-name: Purge Azure CDN
+name: Deploy Website to Azure Storage Account and Purge CDN
 
 on:
   push:
@@ -9,17 +9,65 @@ jobs:
   build:
     runs-on: ubuntu-latest
 
+    strategy:
+      matrix:
+        node-version: [14.2.0]
+
     steps:
-      - name: Azure service principal login
-        uses: azure/login@v1
+      # =================================
+      #              Build
+      # =================================
+      - uses: actions/checkout@v1
+
+      - name: Use Node.js ${{ matrix.node-version }}
+        uses: actions/setup-node@v1
         with:
-          creds: ${{ secrets.AZURE_CREDENTIALS }}
+          node-version: ${{ matrix.node-version }}
 
-      # Do other steps
-
-      - name: Purge CDN
-        run: az cdn endpoint purge -n ${{ secrets.AZURE_CDN_ENDPOINT }} --profile-name ${{ secrets.AZURE_CDN_PROFILE_NAME }} --content-paths "/*" --resource-group ${{ secrets.AZURE_RESOURCE_GROUP }} --no-wait
-
-      - name: Azure service principal logout
+      - name: Install dependencies
         run: |
-          az logout
+          npm install
+          npm install -g gatsby-cli@2.12.21
+
+      - name: Build with Gatsby
+        run: gatsby build
+
+      # =================================
+      #              Push
+      # =================================
+      - name: Azure upload
+        uses: azure/CLI@v1
+        with:
+          azcliversion: 2.0.72
+          inlineScript: |
+            az storage blob delete-batch -s "\$web" --connection-string "${{ secrets.AZURE_STORAGE_CONNECTION_STRING }}"
+            az storage blob upload-batch -d "\$web" -s public --connection-string "${{ secrets.AZURE_STORAGE_CONNECTION_STRING }}"
+      
+      # =================================
+      #            Purge CDN
+      # =================================
+      - name: Azure CDN Purge
+        uses: azure/CLI@v1
+        with:
+          azcliversion: 2.0.72
+          inlineScript: |
+            echo "Logging into Azure:"
+            az login --service-principal \
+                     -u "${{ secrets.CLIENT_ID }}" \
+                     -p "${{ secrets.CLIENT_SECRET }}" \
+                     --tenant "${{ secrets.TENANT_ID }}" \
+                     --query "[].{\"Available Subscriptions\":name}" \
+                     --output table
+
+            echo 'Setting subscription to: "${{ secrets.SUBSCRIPTION_ID }}"'
+            az account set --subscription "${{ secrets.SUBSCRIPTION_ID }}"
+
+            echo "Purging CDN:"
+            az cdn endpoint purge --name ${{ secrets.AZURE_CDN_ENDPOINT }} \
+                                  --profile-name ${{ secrets.AZURE_CDN_PROFILE_NAME }} \
+                                  --content-paths "/*" \
+                                  --resource-group ${{ secrets.AZURE_RESOURCE_GROUP }} \
+                                  --no-wait
+
+            echo "Logging out of Azure:"
+            az logout
