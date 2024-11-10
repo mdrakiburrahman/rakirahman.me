@@ -59,6 +59,8 @@ My personal blog running on Gatsby.
    cd ~/
    git clone https://github.com/mdrakiburrahman/rakirahman.me.git
    cd rakirahman.me/
+   git config --global user.name "Your Name"
+   git config --global user.email "your.email@example.com"
    ```
 
 4. Create a new branch, if required:
