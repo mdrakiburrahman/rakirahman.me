@@ -35,6 +35,51 @@ My personal blog running on Gatsby.
 7. To view a production version of the site, run: `gatsby clean; gatsby build; gatsby serve` and view at `localhost:9000`
 
 
+## How to use, on a Linux machine
+
+1. Get a fresh new WSL machine up:
+
+   ```powershell
+   # Delete old WSL
+   wsl --unregister Ubuntu-24.04
+
+   # Create new WSL
+   wsl --install -d Ubuntu-24.04
+   ```
+
+2. Open VS Code in the WSL:
+
+   ```powershell
+   code .
+   ```
+
+3. Clone the repo:
+
+   ```bash
+   cd ~/
+   git clone https://github.com/mdrakiburrahman/rakirahman.me.git
+   cd rakirahman.me/
+   ```
+
+4. Create a new branch, if required:
+
+   ```bash
+   git checkout -c dev/mdrrahman/branch-name
+   ```
+
+5. Run the bootstrapper script, that installs all tools idempotently:
+
+   ```bash
+   GIT_ROOT=$(git rev-parse --show-toplevel)
+   chmod +x ${GIT_ROOT}/.scripts/bootstrap-dev-env.sh && ${GIT_ROOT}/.scripts/bootstrap-dev-env.sh
+   ```
+
+6. Get the website up at `localhost:8000`:
+
+   ```bash
+   gatsby develop
+   ```
+
 ## CI/CD
 
 Pushing code into this repository triggers two GitHub Actions:
