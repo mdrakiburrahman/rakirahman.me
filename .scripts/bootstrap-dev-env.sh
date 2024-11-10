@@ -10,17 +10,18 @@
 set -e
 set -m
 
-export NVM_VERSION=v0.39.5
-export NODE_VERSION=14.2.0
 export GATSBY_VERSION=2.12.21
+export NODE_VERSION=14.2.0
+export NVM_VERSION=v0.39.5
 
 echo ""
-echo "┌──────────────────────────────┐"
-echo "│ Installing VScode extensions │"
-echo "└──────────────────────────────┘"
+echo "┌───────────────────────────────┐"
+echo "│ Installing VS Code extensions │"
+echo "└───────────────────────────────┘"
 echo ""
 
 code --install-extension github.copilot
+code --install-extension eamodio.gitlens
 
 echo ""
 echo "┌────────────────┐"

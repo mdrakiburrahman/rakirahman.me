@@ -57,7 +57,7 @@ My personal blog running on Gatsby.
 
    ```bash
    cd ~/
-   
+
    git config --global user.name "Your Name"
    git config --global user.email "your.email@example.com"
    git clone https://github.com/mdrakiburrahman/rakirahman.me.git
@@ -82,6 +82,7 @@ My personal blog running on Gatsby.
 6. Get the website up at `localhost:8000`:
 
    ```bash
+   source ~/.bashrc
    gatsby develop
    ```
 
