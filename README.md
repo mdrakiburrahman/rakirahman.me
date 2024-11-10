@@ -53,14 +53,17 @@ My personal blog running on Gatsby.
    code .
    ```
 
-3. Clone the repo:
+3. Clone the repo, and open VSCode in it:
 
    ```bash
    cd ~/
-   git clone https://github.com/mdrakiburrahman/rakirahman.me.git
-   cd rakirahman.me/
+   
    git config --global user.name "Your Name"
    git config --global user.email "your.email@example.com"
+   git clone https://github.com/mdrakiburrahman/rakirahman.me.git
+
+   cd rakirahman.me/
+   code .
    ```
 
 4. Create a new branch, if required:
