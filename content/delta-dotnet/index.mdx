@@ -1,0 +1,134 @@
+---
+title: Flushing 27+ GB/min from Event Hub to Delta Lake with delta-dotnet
+date: 2024-11-10
+published: true
+tags: ["Delta Lake", "C#", "Dotnet", "OneLake", "Event Hub"]
+description: Stream Processing Engine Vendors hate this "One Weird Trick" 🤬
+toc: true
+seoImage: "og-delta-dotnet.png"
+featuredImage: "./featured-image.png"
+---
+
+import { Callout } from "../../src/components/atoms.js"
+import { ExtLink, InlinePageLink } from "../../src/components/atoms.js"
+
+The basic premise of a **highly-efficient, ingestion focused app** is straightforward - get data from `A` to `B`, where:
+
+1. `A` is a resilient, partitioned, contiguous pub-sub buffer with multi-writer support, like Apache Kafka or Event Hub
+2. `B` is a `SQL`-friendly state store that supports [predicate pushdown](https://techcommunity.microsoft.com/blog/sqlserver/predicate-pushdown-and-why-should-i-care/385946), meaning when you supply a query predicate (`WHERE TIMESTAMP > ago(1d)`), the query engine avoids doing expensive full storage scans. 
+
+  So for example, Event Hub or Kafka is a great `A` and a terrible `B`, since to find a piece of data - say with [Apache Presto/Trino](https://trino.io/docs/current/connector/kafka-tutorial.html), you have to do contiguous scans since there is no indexing/skipping mechanism.
+
+[Snowpipe](https://docs.snowflake.com/en/user-guide/data-load-snowpipe-intro) is an example of one such ingestion app that has single-handedly made Snowflake highly profitable by allowing end users to shovel data into it. [Delta Live Tables](https://learn.microsoft.com/en-us/azure/databricks/delta-live-tables/) is another example.
+
+It's important this ingestion process is highly focused and efficient without unnecessary transformation engine overhead; otherwise, you pay distributed applications COGS tax (CPU/Memory/Disk) if you abuse Stream Processing Engines for simple ingestion - like [Apache Spark](https://spark.apache.org/docs/3.5.1/structured-streaming-programming-guide.html)/[Apache Flink](https://flink.apache.org/)/[Azure Stream Analytics](https://learn.microsoft.com/en-us/azure/stream-analytics/stream-analytics-introduction)/[Fabric Event streams](https://learn.microsoft.com/en-us/fabric/real-time-intelligence/event-streams/overview?tabs=enhancedcapabilities) etc. 
+
+Although the initial development cost is nothing (Spark Streaming takes [a couple lines](https://docs.delta.io/latest/delta-streaming.html#append-mode) to sink to Delta), when you combine:
+
+```bash
+# of use cases * # of events * time left on * infra overhead per job = $$$
+```
+
+<Callout>
+
+💰 If you're building a regular old Business Intelligence Product with small/mid-size volume, these ingestion COGS doesn't matter much and you should just do what's easy. But if you're building a 24/7 software product with millions of users, these costs add up over the days/months/years you leave it running.
+
+</Callout>
+
+Many others in the industry, including the folks at Scribd did a whole analysis on this specifically with a Delta Lake sink - see [blog](https://tech.scribd.com/blog/2021/kafka-delta-ingest.html), and [Data + AI Summit 2022 video - `16:10`](https://youtu.be/do4jsxeKfd4?si=o9gIkDmJEJQOneWD):
+
+![Ingesting to Delta with Databricks VS a lean Rust app - 10x infra cost](images/infra-cost.png)
+
+They wrote the [delta-io/kafka-delta-ingest](https://github.com/delta-io/kafka-delta-ingest) (AKA KDI) project in [Rust](https://www.rust-lang.org/) - which reads from Kafka clusters with [the `rdkafka` Rust Crate](https://crates.io/crates/rdkafka/0.23.1/dependencies). 
+
+## Problems with `kafka-delta-ingest` and Event Hub
+
+There's a couple major problems when you try to point KDI against an Azure Event Hub - in decreasing order of priority:
+
+### Event Hub Kafka surface is not good at batching compared to AMQP
+    
+When you're trying to bulk deserialize to a sink that expects Parquet, the most important concept to nail down is batching so you don't end up with a million tiny Parquet files every hour.
+
+The [Event Hub Kafka shim layer](https://learn.microsoft.com/en-us/azure/event-hubs/azure-event-hubs-kafka-overview) doesn't have full Kafka API coverage - see [an example of one of many issues](https://github.com/open-telemetry/opentelemetry-collector-contrib/issues/11846#issuecomment-1678721194). 
+
+For this particular use case I'm interested in, Event Hub Kafka does not expose [sufficient knobs](https://learn.microsoft.com/en-us/azure/event-hubs/apache-kafka-configurations) to configure client-side batching behavior, compared to the large list of Kafka knobs [a real Kafka implementation like Confluent exposes](https://docs.confluent.io/platform/current/installation/configuration/consumer-configs.html#max-poll-records) - e.g. `max.poll.records`, and the equivalent the real Event Hub SDK built on [AMQP](https://en.wikipedia.org/wiki/Advanced_Message_Queuing_Protocol) exposes in [`EventProcessorClientOptions`](https://learn.microsoft.com/en-us/dotnet/api/azure.messaging.eventhubs.eventprocessorclientoptions?view=azure-dotnet) - such as [`PrefetchCount`](https://learn.microsoft.com/en-us/dotnet/api/azure.messaging.eventhubs.eventprocessorclientoptions.prefetchcount?view=azure-dotnet#azure-messaging-eventhubs-eventprocessorclientoptions-prefetchcount) - which makes batching easy with highly reliable throughput.
+
+Rust's `rdkafka` crate does not perform well with Event Hub Kafka when you compare to AMQP. I'm not a Kafka or AMQP protocol expert, so it's important to me that the Client SDKs and publicly documented examples to "just get me my data into my process handler, fast".
+
+<Callout>
+
+🚫 So with KDI + Event Hub, you're essentially bottlenecked by your communication channel to the source, a pretty terrible foundation to start on.
+
+</Callout>
+
+### In 2024, there is no production ready Event Hub AMQP Rust Crate
+
+Which makes contributing good Event Hub support into KDI is out the window, because there's no Microsoft maintained, production ready Event Hub Rust Crate, yet.
+
+There's an up-and-coming one [here](https://github.com/Azure/azure-sdk-for-rust/tree/main/sdk/eventhubs/azure_messaging_eventhubs), but I spoke to the author, who mentioned it's not ready for Production yet. There's an [experimental one](https://docs.rs/azeventhubs/latest/azeventhubs/) built by a good samaritan that looks just like the C# SDK, but I can't take a dependency on that in Production due to supply chain risks - see [example](https://www.reddit.com/r/kubernetes/comments/1gll6uw/kaniko_unmaintained/?share_id=I14IlsIRdHNslX7Gl0CY4) - with single-maintainer projects like this (CVEs etc), in a language unknown to my team (Rust).
+
+### KDI depends on a single writer process when flushing buffer
+
+The KDI project does not co-ordinate transactions between replicas and Delta's "Optimistic" [Concurrency Control](https://docs.delta.io/latest/concurrency-control.html), which means conccurent transactions are the client's problem.
+
+KDI relies on an [internal batched buffer](https://github.com/delta-io/kafka-delta-ingest/blob/main/src/value_buffers.rs) that's flushed when [size or latency limit is reached](https://github.com/delta-io/kafka-delta-ingest/blob/b7638eda8642985b5bd56741de526ea051d784c0/src/lib.rs#L475), where a [_single writer_](https://github.com/delta-io/kafka-delta-ingest/blob/main/doc/DESIGN.md#application-design) is responsible for flushing to Delta as a single transaction.
+
+This means, the moment you introduce multiple replica processes, you increase the risk of getting into [the dreaded Delta Retry Storm](https://github.com/delta-io/delta-rs/discussions/2426) - because Delta Lake does not have a good answer for Concurrent Transactions today. If you throw say, 100 replicas, you are guaranteed to get into a permanent retry storm, because `delta-rs` has [a finite number of retries](https://github.com/delta-io/delta-rs/blob/3f355d87119661fc7cf28877b620b589277ba1d1/crates/core/src/operations/transaction/mod.rs#L572) ([15](https://github.com/delta-io/delta-rs/blob/3f355d87119661fc7cf28877b620b589277ba1d1/crates/core/src/operations/transaction/mod.rs#L111) by default). 
+
+<Callout>
+
+🤬 Relying on client-side retries as an isolation mechanism is extremely rudimentary and doesn't scale, specially on `APPEND` transactions that has zero-chances of conflict.
+
+Can you imagine if regular old databases like Postgres or SQL Server made you retry when someone else was writing an unrelated row? 
+
+In my humble opinion, besides lack of mutli-table transactions, this is the single largest problem with Delta Lake from being a seriously disruptive HDFS-backed state store today. We know this problem can be solved because there are database vendors like Azure SQL or MongoDB that stores data in remote storage, Delta Lake just needs some engineering innovation to offer this feature.
+
+Thankfully, the good folks at Delta Kernel are [looking into solving this for blind `APPEND`s soon](https://github.com/delta-incubator/delta-kernel-rs/issues/377#issue-2573721298), but the code is not written yet.
+
+</Callout>
+
+Our use case requires the ability to flush an arbitrarily large number of events, which means we need an arbitrarily large buffer, which means we cannot do things in a single replica. 
+
+Distributed Mutexes AKA [pessimistic locking](https://en.wikipedia.org/wiki/Lock_(computer_science)#Database_locks) cannot scale when you're trying to flush an ever growing in-memory buffer, you must have the ability to parallel flush.
+
+<Callout>
+
+💡 In fact, the author of `delta-rs` and KDI built this [`oxbow`](https://github.com/buoyant-data/oxbow/tree/main/lambdas/sqs-ingest) project as a workaround to this problem. The idea is, client's blind fire Parquet with zero chance of conflicts. Then you use oxbow to read AWS S3 SNS notifications to find [what Parquet was written](https://github.com/buoyant-data/oxbow/blob/5cb7b022236c41d776d65aeb49a7716fac57b38b/tests/data/s3-event-multiple.json#L30), and **bulk upload** the Delta Transaction log.
+
+</Callout>
+
+### Teething problems with Rust
+
+I don't know Rust. Neither does my team, we're all Dotnet experts. 
+
+Learning syntax aside, adopting a new language into your product requires a bunch of future-facing CICD investments. 
+
+Unless it's an all-up-strategy, adopting it only for a single ingestion app is wasteful. Making the pattern work in Dotnet opens up doors for wider internal adoption.
+
+### Benchmark: kafka-delta-ingest single writer VS delta-dotnet multi writer
+
+Unfortunately, even a very large tank of a KDI replica would not have been able to keep up with the load generator from one of our event streams producers. We were falling short by about **1/5th**, the bottleneck was the Event Hub Kafka client's lack of batch configuration knobs:
+
+![Single KDI Replica with Event Hub Kafka client - 10K/min or 0.5 GB/min](images/kdi-throughput.png)
+
+In the rest of this blog, let's explore how to build a similar app like KDI in C#, that can perform across multiple replicas, and produce results like this:
+
+![Multi Delta Dotnet Replicas with Event Hub AMQP client - 500K/min or 27 GB/min](images/delta-dotnet-throughput.png)
+
+We've completely flipped the narrtive around - our load generator cannot create enough events to stress the sink. 
+
+Not only are we able to obliterate past arbitrarily large event backlogs with stable, flatline performance, but in my test above, the bottleneck was the 16 PU Event Hub in my dev env. With [dedicated event hubs](https://learn.microsoft.com/en-us/azure/event-hubs/event-hubs-dedicated-overview), we can probably gain multiple more folds in throughput.
+
+<Callout>
+
+💡 Unlke KDI - which is a general purpose OSS project, this app I worked on is tightly coupled with a bunch of internal logic, which means, it's not really designed to be a standalone an OSS project, yet.
+
+  So instead, let's focus on the lessons learned from design patterns in Dotnet when dealing with very large in-memory buffers that happens to end in a Delta Lake - which is a fairly exotic type of sink, at least in the Dotnet ecosystem.
+
+</Callout>
+
+---
+
+## Dotnet Architecture
+
+`TODO`
