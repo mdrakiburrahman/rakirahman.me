@@ -69,7 +69,7 @@ My personal blog running on Gatsby.
 4. Create a new branch, if required:
 
    ```bash
-   git checkout -c dev/mdrrahman/branch-name
+   git checkout -b dev/mdrrahman/branch-name
    ```
 
 5. Run the bootstrapper script, that installs all tools idempotently:
