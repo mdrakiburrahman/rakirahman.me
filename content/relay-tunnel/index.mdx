@@ -12,15 +12,15 @@ featuredImage: "./featured-image.png"
 import { Callout } from "../../src/components/atoms.js"
 import { ExtLink, InlinePageLink } from "../../src/components/atoms.js"
 
-Azure Relay is a delightful little Azure service allows 2 globally distributed parties to communicate synchronously - [see architecture](https://learn.microsoft.com/en-us/azure/azure-relay/relay-what-is-it#architecture-processing-of-incoming-relay-requests). Services such as [VSCode Remote tunnel](https://code.visualstudio.com/docs/remote/tunnels) use it.
+Azure Relay is a delightful little Azure service that allows 2 globally distributed parties to communicate synchronously - [see architecture](https://learn.microsoft.com/en-us/azure/azure-relay/relay-what-is-it#architecture-processing-of-incoming-relay-requests). Services such as [VSCode Remote tunnel](https://code.visualstudio.com/docs/remote/tunnels) use it.
 
 We're going to follow [this tutorial](https://learn.microsoft.com/en-us/azure/azure-relay/relay-hybrid-connections-python-get-started) to make it work in remote Spark Notebook environments:
 
 ![Relay Tunnel](images/relay-tunnel.png)
 
 1. Cloud listeners establish websockets against a particular named [Hybrid Connection](https://learn.microsoft.com/en-us/azure/azure-relay/relay-what-is-it#hybrid-connections).
-2. Local machine client app initiates an HTTPS requests to a particular named Hybrid Connection.
-3. Requests and responses between the 2 parties are rendezvoused by the Relay
+2. Local machine client app initiates an HTTPS request to a particular named Hybrid Connection.
+3. Request and response between the 2 parties are rendezvoused by the Relay.
 
 Here's a demo:
 
@@ -131,7 +131,7 @@ config = {
 run_application(config)
 ```
 
-Then, on the client side, run:
+Then, on the client side, run `python client.py fabric`:
 
 ```python
 import json, logging,  requests, sys
