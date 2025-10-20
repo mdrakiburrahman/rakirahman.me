@@ -61,7 +61,7 @@ You can run it locally - [see code here](https://github.com/mdrakiburrahman/fabr
 1. Multi-threaded App comes up and cooks up Parquet based on the SQL statement
 2. Each writer thread flushes Parquet to LandingZone concurrently using DuckDB's Parquet Writer for ADLS
 3. Fabric Open Mirroring "senses" a new file was uploaded (Event Driven, I imagine). Data is compacted into Delta Tables with [Deletion Vectors](https://docs.delta.io/delta-deletion-vectors/) for Merge-On-Read, [Delta Change Data Feed](https://docs.delta.io/delta-change-data-feed/), etc.
-4. Your data is available in Fabric SQL endpoint in near-real time (**~30-60 seconds** in my runs until I made deliberately the system unstable)
+4. Your data is available in Fabric SQL endpoint in near-real time (**~30-60 seconds** in my runs until I deliberately made the system unstable)
 
 <Callout>
 
