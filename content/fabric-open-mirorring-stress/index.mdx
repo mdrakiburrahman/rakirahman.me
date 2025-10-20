@@ -123,15 +123,15 @@ Explanation of the Input-Output variables
 Observations:
 
 * `1,167,451,155 rows/minute` with `5068` Parquet files uploaded in **run 21** was the best run, the `Lag - To Table Delta Data Lag` `11.3 seconds`, which is _**amazing**_ - it tells me that barring any preview bugs, this thing can scale, hard.
-* Increasing `# Rows/File` generally improves throughput, until I got to `1,250,000` rows in **run 9** - at this point, the latency took a huge hit.
-* The replicator generally replicates Parquet Files with the same size as what the writer client sent (~1.49 MB was what I was sending). In other words, it currently doesn't act like Spark where it tries to buffer until 128 MB is reached, my guess is, it's optimized for latency.
-* Just because the `LandingZone`is purged doesn't mean the Delta Transaction will be committed, the 2 things are async.
-* There is definitely a sweet spot to the `Size/encoding/compression of parquet file + # rows + # columns = max throughput` that makes Open Mirroring rip the hardest. I was not able to find this spot empirically this time around (ran out of time during benchmarking).
+* Increasing `# Rows/File` generally improves throughput, until I got to `1,250,000` rows in **run 9** - at this point, the latency took a huge hit. I'm not sure why, yet.
+* The replicator generally replicates Parquet Files with the same size as what the writer client sent (~1.49 MB was what I was sending). In other words, it currently doesn't act like Spark where it tries to buffer until 128 MB is reached, my guess is, it's optimized for latency with an upper-limit flush timeout.
+* Just because the `LandingZone`is purged doesn't mean the Delta Transaction will be committed in sync, the 3 things reading, cleaning, and writing are async.
+* There is definitely a sweet spot to the `Size/encoding/compression of parquet file + # rows + # columns = max throughput` that will make Open Mirroring rip the hardest. I was not able to find this spot empirically this time around (ran out of time during benchmarking, and also, 1.2 Billion Rows/Minute is not too shabby in my books).
 
 ## Verdict
 
-Even though Mirroring was originally introduced to get data from OLTP systems into OLAP Delta Tables, I think the overall replication feature is a fantastic way to ingest APPEND only workloads too without managing a bunch of expensive Streaming Processing infrastructure I discussed [here](https://www.rakirahman.me/delta-dotnet/#diagram).
+Even though Mirroring was originally introduced to get data from OLTP systems into OLAP Delta Tables, I think the overall replication feature is a fantastic way to ingest APPEND only workloads too without managing a bunch of expensive Streaming Processing infrastructure that eats up your CU or Azure Credits, similar to the setup I discussed [here](https://www.rakirahman.me/delta-dotnet/#diagram).
 
-In fact - if I could have my way, I would use it as the de-facto ingestion contract to get data into Fabric.
+In fact - if I could have my way, I would brandish Open Mirroring as the de-facto ingestion contract to get data into Fabric.
 
 You see, it's _pretty_ hard to beat free 😜
