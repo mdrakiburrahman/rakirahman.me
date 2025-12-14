@@ -55,25 +55,6 @@ ItemJobEventLogs
 | project Timestamp, SecondsAgo, ItemName, WorkspaceName, JobScheduleTime, JobStartTime, JobEndTime, JobStatus
 ```
 
-
-<Callout>
-
-There's a couple gotchas in the KQL above. To avoid getting all historical failures all the time, we set `and SecondsAgo <= 540` (or `9m`). This seemingly random `9m` decision comes with caveats.
-
-</Callout>
-
-What the stateless query assumes is the Reflex itself is always running. It's a single-point-of-failure for your event notifications:
-
-1. The Reflex **must** poll KQL at a faster interval than the lookup (say every `5m`). The repercussion of that is, this alerting engine isn't exactly once, if the Reflex trigger clocks overlap inside the 9 minute window, you get the same alert twice (which is fine, you just need an alert). If the Reflex never fires, you never get an alert that you should have gotten.
-
-   The way to solve this problem is when the Reflex runs, we must store watermark state somewhere and construct the query with it, this isn't trivial since Reflex doesn't have a programmatic interface. We can always use Spark Streaming etc to avoid this problem (since it stores state in checkpoints), but that requires managing yet another SPOF thing.
-
-2. We're using Eventhouse ingestion time as the watermark (and not event time), so even if the ingestion is delayed, we maximize our chances of getting an alert as long as the Reflex runs in the next `9m`.
-
-Note that if Activator Reflex is down - you seem to get this sort of an email - if you get that, you may have had silent failures:
-
-![Activator down](images/activator-down.png)
-
 Create the alert:
 
 ![Create an alert](images/alert-me.png)
@@ -94,4 +75,34 @@ It works at scale since the Eventhouse buffers the data, and you can come back a
 
 ## Caveat
 
-The only criticism I have is I can't embed more emojis into the Fabric Activator Teams Alert 😡.
+### Activator must fire within the poll time for at-least once guarantees
+
+<Callout>
+
+There's a couple gotchas in the KQL above. To avoid getting all historical failures all the time, we set `and SecondsAgo <= 540` (or `9m`). This seemingly random `9m` decision comes with caveats.
+
+</Callout>
+
+What the stateless query assumes is the Reflex itself is always running. It's a single-point-of-failure for your event notifications:
+
+1. The Reflex **must** poll KQL at a faster interval than the lookup (say every `5m`). The repercussion of that is, this alerting engine isn't exactly once, if the Reflex trigger clocks overlap inside the 9 minute window, you get the same alert twice (which is fine, you just need an alert). If the Reflex never fires, you never get an alert that you should have gotten.
+
+2. We're using Eventhouse ingestion time as the watermark (and not event time), so even if the ingestion is delayed, we maximize our chances of getting an alert as long as the Reflex runs in the next `9m`.
+
+Note that if Activator Reflex is down - you seem to get this sort of an email - if you get that, you may have had silent failures:
+
+![Activator down](images/activator-down.png)
+
+### This solution is not exactly-once guarantee
+
+The way to solve this problem is when the Reflex runs, we must store watermark state somewhere and construct the query with it, this isn't trivial since Reflex doesn't have a programmatic interface.
+
+It's interesting, in the Log Analytics approach - [state](https://learn.microsoft.com/en-us/azure/azure-monitor/alerts/alerts-overview#alerts-and-state) is managed by the platform, but that's not the case for Activator at this time.
+
+Hopefully stateful Activator queries that run off KQL has managed state.
+
+We can always use Spark Streaming etc to avoid this problem (since it stores state in checkpoints), but that requires managing yet another SPOF thing.
+
+### Aesthetic
+
+The only other criticism I have is I can't embed more emojis into the Fabric Activator Teams Alert 😡.
