@@ -99,10 +99,10 @@ The way to solve this problem is when the Reflex runs, we must store watermark s
 
 It's interesting, in the Log Analytics approach - [state](https://learn.microsoft.com/en-us/azure/azure-monitor/alerts/alerts-overview#alerts-and-state) is managed by the platform, but that's not the case for Activator at this time.
 
-Hopefully stateful Activator queries that run off KQL has managed state.
+Hopefully stateful Activator queries that run off KQL comes as a feature one day.
 
-We can always use Spark Streaming etc to avoid this problem (since it stores state in checkpoints), but that requires managing yet another SPOF thing.
+To get exactly-once, we can always use Spark Streaming (since it stores state in checkpoints), but that requires managing yet another SPOF thing (we're trying to monitor Spark Jobs here, don't use the thing to monitor the thing!).
 
 ### Aesthetic
 
-The only other criticism I have is I can't embed more emojis into the Fabric Activator Teams Alert 😡.
+The only final criticism I have is I can't embed more emojis into the Fabric Activator Teams Alert 😡.
