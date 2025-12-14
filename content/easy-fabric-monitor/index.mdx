@@ -50,7 +50,7 @@ From there, create a rule with this KQL:
 ```sql
 ItemJobEventLogs
 | extend SecondsAgo = datetime_diff('second', now(), ingestion_time())
-| where JobType == 'Pipeline' and JobStatus == 'Failed' and SecondsAgo <= ago(540)
+| where JobType == 'Pipeline' and JobStatus == 'Failed' and SecondsAgo <= 540
 | order by Timestamp desc
 | project Timestamp, SecondsAgo, ItemName, WorkspaceName, JobScheduleTime, JobStartTime, JobEndTime, JobStatus
 ```
