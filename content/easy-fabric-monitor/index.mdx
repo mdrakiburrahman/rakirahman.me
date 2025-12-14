@@ -49,11 +49,31 @@ From there, create a rule with this KQL:
 
 ```sql
 ItemJobEventLogs
-| where JobType == 'Pipeline' and JobStatus == 'Failed'
-| extend SecondsAgo = datetime_diff('second', now(), Timestamp)
+| extend SecondsAgo = datetime_diff('second', now(), ingestion_time())
+| where JobType == 'Pipeline' and JobStatus == 'Failed' and SecondsAgo <= ago(540)
 | order by Timestamp desc
 | project Timestamp, SecondsAgo, ItemName, WorkspaceName, JobScheduleTime, JobStartTime, JobEndTime, JobStatus
 ```
+
+<Callout>
+
+There's a couple gotchas in the KQL above. To avoid avoid getting all historical failures all the time, we set `and SecondsAgo <= ago(540)`. This random `9m` decision comes with caveats.
+
+</Callout>
+
+What the query assumes is the Reflex itself is always running. It's a single-point-of-failure for your event notifications:
+
+1. The Reflex **must** poll KQL at a faster interval than the lookup (say every `5m`). The repercussion of that is, this alerting engine isn't exactly once, if the trigger clocks overlap, you get the same alert twice (which is fine, you just need an alert). If the Reflex never fires, you never get an alert that you should have gotten.
+
+   The way to solve this problem is when the Reflex runs, we must store watermark state somewhere and construct the query with it, this isn't trivial since Reflex doesn't have a programmatic interface.
+
+2. We're using Eventhouse ingestion time as the watermark (and not event time), so even if the ingestion is delayed, we maximize our chances of getting an alert as long as the Reflex runs in the next `9m`.
+
+Note that if Activator Reflex is down - you seem to get this sort of an email - if you get that, you may have had silent failures:
+
+![Activator down](images/activator-down.png)
+
+Create the alert:
 
 ![Create an alert](images/alert-me.png)
 
