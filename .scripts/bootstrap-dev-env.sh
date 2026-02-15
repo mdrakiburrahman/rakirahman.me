@@ -66,6 +66,8 @@ if ! command -v gatsby &> /dev/null; then
     npm install -g gatsby-cli@$GATSBY_VERSION
 fi
 
+command -v copilot &>/dev/null || { curl -fsSL https://gh.io/copilot-install | bash; }
+
 echo ""
 echo "┌──────────────────────────┐"
 echo "│ Installing site packages │"
@@ -80,6 +82,7 @@ echo "│ Versions │"
 echo "└──────────┘"
 echo ""
 
+echo "copilot version: " $(copilot --version)
 echo "nvm version: " $(nvm --version)
 echo "node version: " $(node --version)
 echo "npm version: " $(npm --version)
