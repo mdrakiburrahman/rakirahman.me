@@ -68,6 +68,14 @@ fi
 
 curl -fsSL https://gh.io/copilot-install | bash;
 
+if ! command -v uv &> /dev/null; then
+    echo "uv not found, installing..."
+    curl -LsSf https://astral.sh/uv/install.sh | sh
+    source $HOME/.local/bin/env
+else
+    echo "uv already installed"
+fi
+
 echo ""
 echo "┌──────────────────────────┐"
 echo "│ Installing site packages │"
@@ -87,3 +95,4 @@ echo "nvm version: " $(nvm --version)
 echo "node version: " $(node --version)
 echo "npm version: " $(npm --version)
 echo "gatsby version: " $(gatsby --version)
+echo "uv version: " $(uv --version)
