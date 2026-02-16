@@ -86,6 +86,14 @@ My personal blog running on Gatsby.
    gatsby develop
    ```
 
+7. Init spec kit:
+
+   ```bash
+   GIT_ROOT=$(git rev-parse --show-toplevel)
+   cd $GIT_ROOT
+   source $HOME/.local/bin/env && uvx --from git+https://github.com/github/spec-kit.git specify init --here
+   ```
+
 ## CI/CD
 
 Pushing code into this repository triggers two GitHub Actions:

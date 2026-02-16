@@ -2,11 +2,12 @@ import { Link } from "gatsby"
 import React from "react"
 import ThemeToggle from "./themeToggle"
 import { NavLink, BlobHeader } from "./atoms"
+import CenteredSearch from "./centeredSearch"
 
-const Header = ({ activePage }) => (
-  <header className="container m-auto px-5 sm:px-12 md:px-20 max-w-screen-xl h-32 overflow-hidden">
+const Header = ({ activePage, allPosts = [] }) => (
+  <header className="container m-auto px-5 sm:px-12 md:px-20 max-w-screen-xl">
     <nav
-      className="mt-auto h-full flex space-x-6 items-center justify-center md:justify-start text-sm"
+      className="h-32 flex space-x-6 items-center justify-center md:justify-start text-sm overflow-visible"
       aria-label="Main Navigation"
     >
       <Link to="/" aria-label="Website logo, go back to homepage.">
@@ -27,12 +28,15 @@ const Header = ({ activePage }) => (
         <NavLink to="/about" title="About" selected={activePage === "about"}>
           About
         </NavLink>
+        <div className="flex-1 max-w-2xl">
+          <CenteredSearch allPosts={allPosts} />
+        </div>
       </span>
       <ThemeToggle className="hidden sm:block hover:text-accent transition duration-150" />
     </nav>
 
-    <div className="hidden sm:block">
-      <div className="-mt-120 sm:-mt-120 ml-4">
+    <div className="hidden sm:block relative" style={{ height: 0, overflow: 'visible' }}>
+      <div className="absolute" style={{ top: '-120px', left: '1rem' }}>
         <BlobHeader />
       </div>
     </div>

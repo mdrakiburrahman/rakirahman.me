@@ -1,6 +1,47 @@
 import React from "react"
 import { Link } from "gatsby"
 
+export const TagBadge = ({ 
+  name, 
+  count = null, 
+  selected = false, 
+  clickable = false, 
+  onClick = null 
+}) => {
+  const baseClasses = "inline-flex items-center px-3 py-1 rounded-full text-sm font-medium transition-colors duration-150 truncate max-w-xs"
+  
+  const stateClasses = selected
+    ? "tag-badge-selected"
+    : "tag-badge"
+  
+  const interactionClasses = clickable
+    ? "cursor-pointer hover:opacity-75"
+    : "cursor-default opacity-75"
+  
+  const className = `${baseClasses} ${stateClasses} ${interactionClasses}`
+  
+  const displayText = count !== null ? `${name} (${count})` : name
+  
+  if (clickable && onClick) {
+    return (
+      <button
+        className={className}
+        onClick={onClick}
+        aria-pressed={selected}
+        type="button"
+      >
+        {displayText}
+      </button>
+    )
+  }
+  
+  return (
+    <span className={className}>
+      {displayText}
+    </span>
+  )
+}
+
 export const NavLink = ({ to, children, title = "Link", selected = false }) => {
   const textColor = selected ? "text-accent" : "text-secondary"
   const style = `font-normal text-base hover:text-accent transition duration-150 ${textColor}`
