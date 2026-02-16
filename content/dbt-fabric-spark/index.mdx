@@ -115,35 +115,35 @@ Basically:
 1. In the age of AI, you want to minimize custom, proprietary ETL bootstrapping code specific to your codebase that AI cannot robustly understand.
 2. Spark Streaming incremental processing capability is best in class, and you want to adopt Spark Declarative Pipelines as soon as you can get your hands on Spark 4.2 to bring in the Spark-specific declarative API to get similar benefits as dbt.
 
-## Why Fabric Spark and not Fabric Data Warehouse for ETL/ELT?
+## Fabric Spark and Fabric Data Warehouse architectural limitations for ETL
 
-In short, because Fabric Spark offers the exact same API as local Spark, and **locally reproducible test coverage is the _most important capability_ in leveraging AI models to write your code**.
+[Snowflake](https://docs.snowflake.com/en/) is the granddaddy of Modern Data Warehouses that dbt has arguably the most adoption with. I learnt a lot about why Data Analysts like the dbt + Snowflake combo from [this book](https://www.amazon.ca/Data-Engineering-dbt-cloud-based-dependable-ebook/dp/B0C4LL19G7) - tldr; it's _easy_ and it _just works_ (functionally).
 
-The most important rule of Continuous Integration testing is, it needs to be 100% deterministic with zero room for flakiness - see this blog from Datadog - [Flaky tests: their hidden costs and how to address flaky behavior](https://www.datadoghq.com/blog/datadog-flaky-tests/).
+The problem with dev/test setup is, the level of isolation in the book is a Snowflake schema. The idea is, everyone - dev/test/prod - uses the same Snowflake warehouse, which allows you to refer to tables from the `prod` schema, and use it in your `my-dev` schema in dbt.
 
-This is why I did not go with the [Fabric Data Warehouse adapter](https://docs.getdbt.com/docs/core/connect-data-platform/fabric-setup) after evaluating it, you need a Fabric Workspace to run your tests in GitHub Action/Azure DevOps Pipelines.
-For 1000 parallelized AI-generated PRs, you'll need to spin up 1000 Fabric Workspaces, 1000 capacities, and potentially, 1000 support requests for subscription quota increase.
+This of course, means some admin needs to use the database engine's schema level RBAC to stop developers from writing into the `prod` schema.
 
-This external **compute** dependency makes parallelized pull request testing extremely brittle and difficult to pull off - because after the testing is done, you need to spin up and tear down the infrastructure over there in Fabric every time you finish a PR test.
-
-This is an extremely difficult and tedious problem to deal with, because you now need to deal with throttling/API flakiness etc. when you're really just trying to test and merge a PR with business logic.
-
-[Snowflake](https://docs.snowflake.com/en/) also has this problem despite being the granddaddy of Modern Data Warehouses that dbt has arguably the most adoption with - so someone built this thing called [fakesnow](https://github.com/tekumara/fakesnow) to simulate Snowflake locally. I bet the author wishes Snowflake could just release a Docker Container so they could be done with this problem without mocking the Snowflake SQL surface area.
+In a polyglot engine offering like Fabric, this goes against the [OneLake Security principle](https://learn.microsoft.com/en-us/fabric/onelake/security/get-started-security), where RBAC should be at the storage layer, not per compute layer. So, using a single giant Warehouse's RBAC and schemas to maintain dev/test/prod access is a huge headache as it goes against the grain of the platform, and the grain of how I'd use Fabric.
 
 <Callout>
 
-In the age of AI-generated PRs on the rise, all of these proprietary cloud warehouse vendors will realize one day that you really must offer a lightweight Docker Container to enable local dev/testing that significantly drives product adoption. This is the only reason I use Spark nowadays, I can run the entire API surface area locally to test my business logic confidently.
-
-Other giants have learnt this the hard way and done it, [SQL Server Container](https://hub.docker.com/r/microsoft/mssql-server), [Event Hub Container](https://hub.docker.com/r/microsoft/azure-messaging-eventhubs-emulator), [Cosmos DB Container](https://github.com/Azure/azure-cosmos-db-emulator-docker).
-
-Zero dependency local dev/testing solves an **extremely real problem** at producing high-velocity, high-quality software.
+Similarly, someone in Snowflake land shared this sentiment too, and they built this thing called [fakesnow](https://github.com/tekumara/fakesnow) to simulate Snowflake locally. I bet the author wishes Snowflake could just release a Docker Container so they could be done with this problem without mocking the Snowflake SQL surface area!
 
 </Callout>
 
-As you'll see below, with Spark, you can keep your seed state in OneLake, mount it locally as read-only, and use local Spark in GitHub Actions/your laptop to rip through your model with as many AI models as you need to do something in parallel.
+On the other hand, Fabric Spark offers the exact same API as local Spark, and since Spark lets you mount tables into its hive metastore agnostic of where it's physically located, this means we can mount Production OneLake Delta tables as read-only in our dev/test local or Fabric workspaces. As long as the identity doing the mounting has read access to storage, they can mount and read to their heart's content.
 
-That being said, if you're not on a team that's looking to milk the living heck out of AI Agents to generate code as parallely as possible on a large team, in my opinion, you should totally go with Fabric Warehouse for your ELT since it comes with less fancy knobs and less room for headaches.
-The day Fabric Warehouse can offer a locally mockable Docker container that works with OneLake mounted data like Spark does, I'll probably start adopting it for ELT too, because the [Engine](https://learn.microsoft.com/en-us/fabric/data-warehouse/architecture) is super impressive and fast.
+That means, we can use local Spark in GitHub Actions/your laptop to rip through your model with as many AI models as you need to do something in parallel. If we don't have a beefy machine, you can always use a dev/test Fabric Spark workspace via the Livy endpoint using your laptop's VS Code, ultra flexible.
+
+Having a similar "external delta table mounted into a regular looking table" would solve this problem in Fabric Warehouse, but it doesn't exist yet:
+
+![Lakehouse VS Warehouse dev/test/prod isolation problem](images/lakehouse-vs-warehouse.png)
+
+That being said, if you're on a small team that doesn't care too much about dev/test/prod isolation, in my opinion, you should totally go with a single Fabric Warehouse in prod for your ELT and use schemas for RBAC isolation, since it comes with less fancy knobs, less integration points and less room for bugs and headaches.
+
+Plus, SQL Server has always had a reputation to be blazing fast _if_ you can lock it down. The [Fabric Warehouse Engine](https://learn.microsoft.com/en-us/fabric/data-warehouse/architecture) has a robust, completely serverless architecture, and in my tests - have locked SQL Server the _heck down_ when it comes to perf on Delta Lake tables 😊. They're just missing a few quality of life things that Spark has had since my grandpa's days because Spark was born with a complete compute/storage isolation, including the metastore API.
+
+So for now, off with Spark and dbt I go. The good thing about dbt is, you're pretty much one AI-generated PR away from migrating the entire codebase into another backend, since your entire model can be tested and diff checked in one shot.
 
 ## How to dbt on Fabric Spark?
 
