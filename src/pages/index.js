@@ -2,15 +2,49 @@ import React from "react"
 import Layout from "../components/layout"
 import SEO from "../components/seo"
 import PostList from "../components/postList"
-import { Heading } from "../components/atoms"
-
 import { Blob } from "../components/atoms"
 import Contact from "../components/contact"
 import Image from "../components/image"
+import { graphql, useStaticQuery } from "gatsby"
 
 const IndexPage = () => {
+  // Get all posts for search
+  const data = useStaticQuery(graphql`
+    query AllPostsForSearch {
+      allMdx(
+        sort: { fields: frontmatter___date, order: DESC }
+        filter: { frontmatter: { published: { eq: true } } }
+      ) {
+        edges {
+          node {
+            id
+            frontmatter {
+              title
+              description
+              tags
+            }
+            fields {
+              slug
+            }
+            excerpt(pruneLength: 300)
+            rawBody
+          }
+        }
+      }
+    }
+  `)
+
+  const allPosts = data.allMdx.edges.map(({ node }) => ({
+    slug: node.fields.slug,
+    title: node.frontmatter.title,
+    description: node.frontmatter.description,
+    tags: node.frontmatter.tags || [],
+    excerpt: node.excerpt,
+    body: node.rawBody,
+  }))
+
   return (
-    <Layout activePage="/">
+    <Layout activePage="/" allPosts={allPosts}>
       <SEO />
       <div className="mt-12 flex flex-col-reverse lg:flex-row items-center lg:justify-between lg:space-x-6">
         <h1 className="mt-12 lg:mt-0 max-w-3xl text-3xl sm:text-4xl text-primary font-bold sm:text-left md:text-center lg:text-left">

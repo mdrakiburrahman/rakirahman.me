@@ -150,6 +150,68 @@ When a reader opens an individual blog post to read the full article, they can s
 - **SC-009**: Posts matching multiple selected tags appear once without duplication (100% deduplication accuracy)
 - **SC-010**: Feature works in all major browsers (Chrome, Firefox, Safari, Edge) without degradation
 
+## Learnings & Experiences *(post-implementation)*
+
+### Tag Strategy Evolution
+
+**Discovery**: Authors may not recognize tag proliferation issues until the feature is implemented and visible. In this case, the blog had accumulated 49 tags over time with many granular, feature-level tags (e.g., "Availability Group", "Autoloader", "Encryption", "SSL") that provided limited value for content discovery.
+
+**Learning**: Tag strategy should focus on major technology brand names rather than granular features. A consolidation exercise reduced tags from 49 to 29 (41% reduction) by mapping feature-level tags to their parent technologies (e.g., "SQL MI" + "Availability Group" → "SQL Server", "Kusto" → "Azure Data Explorer", "Spark" → "Apache Spark").
+
+**Recommendation**: For tech blogs, prioritize brand-name tags over implementation details. Readers typically discover content by major technology (e.g., "Kubernetes", "Apache Spark") rather than specific features. Aim for 20-30 meaningful tags rather than 50+ granular ones.
+
+### UI/UX Iteration Process
+
+**Discovery**: Initial placements rarely get it right. Multiple iterations were needed:
+- Search bar: Initially placed in header → broke layout → moved to content area → successfully returned to header with proper styling
+- Tag bar: Initially at top of page → too busy → moved to bottom → better visual hierarchy
+- Tag interaction: Initially multi-select → switched to single-select for simpler UX
+- Hover areas: Tags initially outside clickable area → moved inside for better UX
+
+**Learning**: Visual hierarchy matters. Tags at the bottom of the page provide filtering functionality without overwhelming the primary content. On individual posts, tags should appear before the date to establish context first (not buried after).
+
+**Recommendation**: Be prepared for 3-5 UI/UX iterations even on simple features. Test with actual content volume before finalizing placement decisions.
+
+### Content Quality Over Quantity
+
+**Discovery**: "Too many useless tags" actively hurts user experience rather than helping. Generic tags like "Automation", "SSL", "Encryption", "Streaming" provided no real filtering value because they were either too broad or appeared on too few posts.
+
+**Learning**: Tags should be specific enough to be meaningful but broad enough to group related content. The sweet spot is technology-specific tags that appear on 2+ posts and represent distinct subject areas.
+
+**Recommendation**: Audit tags after implementation. Remove tags that appear on only 1 post or are too generic to be useful. Consolidate related tags under umbrella terms (e.g., "C#" + "Dotnet" → ".NET", "vue" + "Javascript" → "JavaScript").
+
+### Interactive Area Design
+
+**Discovery**: Tags displayed outside the hover/click area of blog post cards felt disconnected and non-interactive, even though they weren't meant to be clickable.
+
+**Learning**: Visual elements should be within interactive areas even if they themselves aren't interactive. This creates a cohesive visual block and prevents the feeling of "floating" elements.
+
+**Recommendation**: Include all post metadata (tags, date, description) within the hover/clickable area of listing cards for visual cohesion.
+
+### Visual Hierarchy on Post Pages
+
+**Discovery**: Initially placed tags after the date on individual posts, but this buried important context information.
+
+**Learning**: Tags provide crucial context about the post's subject matter and should appear first in the header metadata, before temporal information like date/time-to-read.
+
+**Recommendation**: Order post header metadata by importance: Tags → Date/Time → Title. This establishes "what this post is about" before "when it was written".
+
+### Search Placement Strategy
+
+**Discovery**: Search bars in navigation headers require careful layout consideration. Initial attempts broke the decorative blob background and made the picture element disappear.
+
+**Learning**: Adding tall components to fixed-height headers requires using flex-grow with max-width constraints and absolute positioning for decorative elements to prevent layout collapse.
+
+**Recommendation**: When adding new elements to constrained layouts (like headers), test with both content extremes (very short and very long search queries) and in both light/dark modes before finalizing.
+
+### Decision-Making for Conflicting Approaches
+
+**Discovery**: Tag consolidation involved multiple strategic decisions with no single "right" answer (e.g., keep "Azure SQL" separate from "SQL Server"? Consolidate "Autoloader" under "Databricks"?).
+
+**Learning**: Defer to the author's domain expertise when faced with taxonomy decisions. The blog owner understands their audience best and knows whether readers would search for "Databricks" broadly or "Autoloader" specifically.
+
+**Recommendation**: Present consolidation options as explicit choices with examples, then implement the author's preferences. Don't consolidate blindly—some granular tags may have strategic value for specific audiences.
+
 ## Assumptions *(optional)*
 
 - Tag data is already present in blog post frontmatter as an array field named `tags`

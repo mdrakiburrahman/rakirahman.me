@@ -1,0 +1,52 @@
+/* Tag Badge Styles */
+.tag-badge {
+  background-color: var(--color-bg-secondary);
+  color: var(--color-text-secondary);
+  border: 1px solid var(--color-bg-secondary);
+}
+
+.tag-badge-selected {
+  background-color: var(--color-bg-accent);
+  color: var(--color-text-on-accent);
+  border: 1px solid var(--color-text-accent);
+}
+
+/* Tag Filter Bar */
+.tag-filter-bar {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 1rem;
+  background-color: var(--color-bg-secondary);
+  border-radius: 0.375rem;
+  margin-bottom: 1.5rem;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
+/* Tag Scroll Container */
+.tag-scroll-container {
+  display: flex;
+  gap: 0.5rem;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: thin;
+  scrollbar-color: var(--color-text-tertiary) transparent;
+}
+
+.tag-scroll-container::-webkit-scrollbar {
+  height: 4px;
+}
+
+.tag-scroll-container::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.tag-scroll-container::-webkit-scrollbar-thumb {
+  background-color: var(--color-text-tertiary);
+  border-radius: 2px;
+}
+
+.tag-scroll-container::-webkit-scrollbar-thumb:hover {
+  background-color: var(--color-text-secondary);
+}

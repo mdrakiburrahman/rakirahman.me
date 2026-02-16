@@ -5,7 +5,7 @@ import { MDXRenderer } from "gatsby-plugin-mdx"
 import { Link } from "gatsby"
 import Layout from "./layout"
 import SEO from "./seo"
-import { BlogTitle, BlogTitleInfo, ExtLink } from "./atoms"
+import { BlogTitle, BlogTitleInfo, ExtLink, TagBadge } from "./atoms"
 import Contact from "../components/contact"
 import TOC from "./toc"
 
@@ -14,9 +14,18 @@ const shortcodes = {
   Link,
 }
 
-const PostLayout = ({ data: { mdx, ogImage } }) => {
+const PostLayout = ({ data: { mdx, ogImage, allMdx } }) => {
+  const allPosts = allMdx.edges.map(({ node }) => ({
+    slug: node.fields.slug,
+    title: node.frontmatter.title,
+    description: node.frontmatter.description,
+    tags: node.frontmatter.tags || [],
+    excerpt: node.excerpt,
+    body: node.rawBody,
+  }))
+
   return (
-    <Layout activePage="blog">
+    <Layout activePage="blog" allPosts={allPosts}>
       <SEO
         blog
         title={mdx.frontmatter.title}
@@ -27,6 +36,18 @@ const PostLayout = ({ data: { mdx, ogImage } }) => {
       <div className="flex justify-between mt-12 mb-12 relative">
         <article className="prose sm:prose md:prose-lg min-w-0 max-w-none tracking-normal">
           <div className="">
+            {mdx.frontmatter.tags && mdx.frontmatter.tags.length > 0 && (
+              <div className="tag-scroll-container mb-5">
+                {mdx.frontmatter.tags.map(tag => (
+                  <TagBadge
+                    key={tag}
+                    name={tag}
+                    selected={false}
+                    clickable={false}
+                  />
+                ))}
+              </div>
+            )}
             <BlogTitleInfo
               date={mdx.frontmatter.date}
               datetime={mdx.frontmatter.datetime}
@@ -60,6 +81,7 @@ export const pageQuery = graphql`
         datetime: date
         description
         toc
+        tags
       }
       fields {
         slug
@@ -67,6 +89,26 @@ export const pageQuery = graphql`
       excerpt(pruneLength: 140)
       tableOfContents
       timeToRead
+    }
+    allMdx(
+      sort: { fields: frontmatter___date, order: DESC }
+      filter: { frontmatter: { published: { eq: true } } }
+    ) {
+      edges {
+        node {
+          id
+          frontmatter {
+            title
+            description
+            tags
+          }
+          fields {
+            slug
+          }
+          excerpt(pruneLength: 300)
+          rawBody
+        }
+      }
     }
     ogImage: file(relativePath: { eq: $ogImageSlug }) {
       childImageSharp {
