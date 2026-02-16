@@ -14,7 +14,7 @@ const Post = ({ post }) => {
               <h3 className="text-xl font-semibold group-hover:text-accent">
                 {post.title}
               </h3>
-              <h4 className="font-medium text-tertiary">{post.description}</h4>
+              <h4 className="font-medium text-tertiary mt-1">{post.description}</h4>
             </div>
             <div className="mt-2 sm:mt-0 text-sm sm:text-base text-accent sm:text-tertiary">
               {post.date}

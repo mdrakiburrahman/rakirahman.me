@@ -19,8 +19,8 @@ const About = _ => {
           </h2>
           <p>
             I'm a <strong>Software Engineer</strong> at Microsoft, building{" "}
-            <ExtLink link="https://azure.microsoft.com/en-us/products/azure-arc/hybrid-data-services">
-              <strong>Azure Arc-enabled Data Services</strong>
+            <ExtLink link="https://blog.fabric.microsoft.com/en-us/blog/sql-telemetry-intelligence-how-we-built-a-petabyte-scale-data-platform-with-fabric?ft=All">
+              <strong>SQL Server Telemetry & Intelligence</strong>
             </ExtLink>{" "}
             - currently based out of Toronto, Canada.
           </p>
