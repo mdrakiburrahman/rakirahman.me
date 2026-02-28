@@ -34,7 +34,6 @@ My personal blog running on Gatsby.
 6. View the site at `localhost:8000`, with graphql endpoint at `localhost:8000/___graphql`
 7. To view a production version of the site, run: `gatsby clean; gatsby build; gatsby serve` and view at `localhost:9000`
 
-
 ## How to use, on a Linux machine
 
 See [doc](contrib/README.md).
