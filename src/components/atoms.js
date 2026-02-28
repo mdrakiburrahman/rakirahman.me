@@ -190,6 +190,23 @@ export const Callout = ({ children }) => {
   )
 }
 
+export const QuoteBlock = ({ children, author, source }) => {
+  return (
+    <blockquote
+      className="border-l-4 border-accent bg-secondary rounded-r-lg px-6 py-4 my-6 italic text-base"
+      style={{ color: "var(--color-text-secondary)" }}
+    >
+      <div className="mb-2">{children}</div>
+      {(author || source) && (
+        <footer className="not-italic text-sm font-medium" style={{ color: "var(--color-text-accent)" }}>
+          {author && <span>— {author}</span>}
+          {source && <cite className="ml-1 font-normal" style={{ color: "var(--color-text-tertiary)" }}>, {source}</cite>}
+        </footer>
+      )}
+    </blockquote>
+  )
+}
+
 export const Blob = _ => {
   return (
     <div aria-hidden="true">
