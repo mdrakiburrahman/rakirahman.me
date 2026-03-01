@@ -1,5 +1,5 @@
 ---
-title: OpenClaw-Inspired Livesite incident triaging app with Fabric & GitHub Copilot CLI
+title: Livesite incident triaging app with Fabric & GitHub Copilot CLI
 date: 2026-02-28
 published: true
 tags: ["Microsoft Fabric", "Copilot", "AI/ML"]
@@ -25,10 +25,6 @@ This results in a textbook definition of what we call [toil](https://sre.google/
     If you're solving a novel problem or inventing a new solution, this work is not toil.
 </QuoteBlock>
 
-[OpenClaw](https://openclaw.ai/) is fascinating for a single reason: it can impersonate you and has access to your local filesystem, which contains personal information.
-
-I wanted to take this concept and see if I could apply it to my situation, without actually using OpenClaw.
-
 Basically, my takeaway is, if you can combine:
 
 1. Traditional [desired state](https://en.wikipedia.org/wiki/Finite-state_machine)/long-running apps
@@ -45,7 +41,7 @@ I won't go into details about the specific incident management system since it's
 
 </Callout>
 
-The OpenClaw-inspired system below was mostly vibe coded in Python (due to the rich set of NLP libraries) with a couple manual tweaks here and there. 
+The system below was mostly vibe coded in Python (due to the rich set of NLP libraries) with a couple manual tweaks here and there. 
 
 I just thought up creative ideas, validated the assumptions with [/research](https://docs.github.com/en/copilot/tutorials/copilot-chat-cookbook/communicate-effectively/synthesizing-research?versionId=free-pro-team%40latest&productId=copilot&restPage=get-started%2Cfeatures) mode, and used [/fleet](https://docs.github.com/en/copilot/concepts/agents/copilot-cli/fleet) mode to generate functionally correct code extremely rapidly (not production ready, but it drives the point home extremely well), while dealing with livesite incidents:
 
