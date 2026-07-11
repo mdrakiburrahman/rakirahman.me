@@ -1,4 +1,4 @@
-name: Deploy Website to Azure Storage Account and Purge CDN
+name: Deploy Website to Azure Storage Account
 
 on:
   push:
