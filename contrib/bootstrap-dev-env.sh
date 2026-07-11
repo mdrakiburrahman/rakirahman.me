@@ -20,8 +20,7 @@ echo "│ Installing VS Code extensions │"
 echo "└───────────────────────────────┘"
 echo ""
 
-code --install-extension github.copilot
-code --install-extension eamodio.gitlens
+code --install-extension unifiedjs.vscode-mdx
 
 echo ""
 echo "┌────────────────┐"
