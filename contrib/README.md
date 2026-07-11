@@ -37,6 +37,12 @@
    chmod +x ${GIT_ROOT}/contrib/bootstrap-dev-env.sh && ${GIT_ROOT}/contrib/bootstrap-dev-env.sh
    ```
 
+1. Install AI tooling (optional):
+
+   ```bash
+   curl -fsSL https://gh.io/copilot-install | bash
+   $HOME/.local/bin/copilot --yolo
+   ```
 
 1. Get the website up at `localhost:8000`:
 
