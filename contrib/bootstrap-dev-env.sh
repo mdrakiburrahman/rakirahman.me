@@ -11,6 +11,7 @@ set -e
 set -m
 
 export GATSBY_VERSION=2.12.21
+export SHARP_CLI_VERSION=2.1.1
 export NODE_VERSION=14.2.0
 export NVM_VERSION=v0.39.5
 
@@ -20,8 +21,7 @@ echo "│ Installing VS Code extensions │"
 echo "└───────────────────────────────┘"
 echo ""
 
-code --install-extension github.copilot
-code --install-extension eamodio.gitlens
+code --install-extension unifiedjs.vscode-mdx
 
 echo ""
 echo "┌────────────────┐"
@@ -66,6 +66,13 @@ if ! command -v gatsby &> /dev/null; then
     npm install -g gatsby-cli@$GATSBY_VERSION
 fi
 
+if ! command -v sharp &> /dev/null; then
+    echo "sharp-cli not found, installing..."
+    npm install -g sharp-cli@$SHARP_CLI_VERSION
+else
+    echo "sharp-cli already installed"
+fi
+
 curl -fsSL https://gh.io/copilot-install | bash;
 
 if ! command -v uv &> /dev/null; then
@@ -95,4 +102,5 @@ echo "nvm version: " $(nvm --version)
 echo "node version: " $(node --version)
 echo "npm version: " $(npm --version)
 echo "gatsby version: " $(gatsby --version)
+echo "sharp-cli version: " $(sharp --version)
 echo "uv version: " $(uv --version)
