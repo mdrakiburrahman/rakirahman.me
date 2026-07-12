@@ -85,6 +85,13 @@ az storage account update --resource-group rakirahman.me --name rakirahman --cus
 # Message: The custom domain name could not be verified. CNAME mapping from www.rakirahman.me to any of rakirahman.blob.core.windows.net,rakirahman.z9.web.core.windows.net does not exist.
 ```
 
+<Callout>
+
+1. If the second `az` command keeps throwing, in the CNAME in Cloudflare, toggle `Proxied` to `DNS only`, do the validation, and then switch it back.
+
+</Callout>
+
+
 ![Azure Blob Custom Domain](images/azure-blob-custom-domain.png)
 
 Enjoy free SSL termination:
