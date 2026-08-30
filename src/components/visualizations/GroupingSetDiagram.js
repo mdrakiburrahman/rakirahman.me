@@ -1,6 +1,5 @@
 import React from "react"
 import PropTypes from "prop-types"
-import { FOOTER_STATS, GROUPING_SET_GROUPS } from "./data/nyc311CubeSchema"
 import styles from "./visualizations.module.css"
 
 const BLOCK_SIZE = 6
@@ -33,6 +32,7 @@ const createModel = (groups, footer) => {
     group.items.forEach((item, itemIndex) => {
       sections.push({
         ...item,
+        tone: item.tone || group.tone,
         groupId: group.id,
         groupIndex,
         newGroup: sections.length > 0 && itemIndex === 0,
@@ -138,8 +138,14 @@ ToneDot.propTypes = {
 }
 
 const GroupingSetDiagram = ({
-  groups = GROUPING_SET_GROUPS,
-  footer = FOOTER_STATS,
+  groups,
+  footer,
+  caption = "The public Parquet layout by grouping set and physical row group",
+  title,
+  subtitle,
+  summaryValue,
+  summaryLabel,
+  footerNote,
 }) => {
   const wrapperRef = React.useRef(null)
   const svgRef = React.useRef(null)
@@ -162,7 +168,9 @@ const GroupingSetDiagram = ({
 
     const wrapperBounds = wrapper.getBoundingClientRect()
     const firstBodyRow = wrapper.querySelector("tbody tr")
-    const firstLabel = firstBodyRow.querySelector("[data-diagram-label]")
+    const firstLabel =
+      firstBodyRow && firstBodyRow.querySelector("[data-diagram-label]")
+    if (!firstLabel) return
     const firstLabelBounds = firstLabel.getBoundingClientRect()
     const stackTop =
       firstLabelBounds.top +
@@ -244,18 +252,19 @@ const GroupingSetDiagram = ({
 
   const renderItemRow = item => {
     const index = sectionIndex(item.id)
+    const section = model.sections[index]
     const active = activeSection === index
-    const sizePercent = (100 * item.kb) / model.maximumGroupKb
+    const sizePercent = (100 * section.kb) / model.maximumGroupKb
 
     return (
       <tr
-        key={item.id}
+        key={section.id}
         ref={row => {
           sectionRows.current[index] = row
         }}
         className={classNames(
           styles.diagramSectionRow,
-          item.description && styles.diagramDescribedRow,
+          section.description && styles.diagramDescribedRow,
           active && styles.diagramRowActive
         )}
         data-section-index={index}
@@ -275,40 +284,40 @@ const GroupingSetDiagram = ({
               )}
               data-diagram-label
             >
-              {item.name}
+              {section.name}
               <span
                 className={classNames(
                   styles.diagramRowGroupCount,
                   active && styles.diagramRowGroupCountVisible
                 )}
               >
-                {item.rowGroups} row group
-                {item.rowGroups === 1 ? "" : "s"}
+                {section.rowGroups} row group
+                {section.rowGroups === 1 ? "" : "s"}
               </span>
             </span>
           </span>
-          {item.description && (
+          {section.description && (
             <span
               className={classNames(
                 styles.diagramDescription,
                 styles.diagramTruncate
               )}
             >
-              {item.description}
+              {section.description}
             </span>
           )}
         </td>
         <MetricCell
-          value={item.rows}
+          value={section.rows}
           percent={0}
-          tone={item.tone}
+          tone={section.tone}
           active={active}
           kind="rows"
         />
         <MetricCell
-          value={item.kb}
+          value={section.kb}
           percent={sizePercent}
-          tone={item.tone}
+          tone={section.tone}
           active={active}
           kind="size"
         />
@@ -318,9 +327,22 @@ const GroupingSetDiagram = ({
 
   return (
     <figure className={styles.groupingDiagram}>
-      <figcaption className={styles.visuallyHidden}>
-        The Parquet cube layout by grouping set and row group
-      </figcaption>
+      <figcaption className={styles.visuallyHidden}>{caption}</figcaption>
+
+      {(title || summaryValue) && (
+        <div className={styles.diagramIntro}>
+          <div>
+            {title && <h2 className={styles.diagramTitle}>{title}</h2>}
+            {subtitle && <p className={styles.diagramSubtitle}>{subtitle}</p>}
+          </div>
+          {summaryValue && (
+            <div className={styles.diagramSummary}>
+              <strong>{summaryValue}</strong>
+              {summaryLabel && <span>{summaryLabel}</span>}
+            </div>
+          )}
+        </div>
+      )}
 
       <div className={styles.diagramLayout} ref={wrapperRef}>
         <div className={styles.diagramRowGroupHeader} aria-hidden="true">
@@ -684,11 +706,19 @@ const GroupingSetDiagram = ({
           </table>
         </div>
       </div>
+
+      {footerNote && <p className={styles.diagramFooterNote}>{footerNote}</p>}
     </figure>
   )
 }
 
 GroupingSetDiagram.propTypes = {
+  caption: PropTypes.string,
+  title: PropTypes.string,
+  subtitle: PropTypes.string,
+  summaryValue: PropTypes.string,
+  summaryLabel: PropTypes.string,
+  footerNote: PropTypes.string,
   groups: PropTypes.arrayOf(
     PropTypes.shape({
       id: PropTypes.string.isRequired,
@@ -697,25 +727,27 @@ GroupingSetDiagram.propTypes = {
       tone: PropTypes.string.isRequired,
       items: PropTypes.arrayOf(
         PropTypes.shape({
-          id: PropTypes.number.isRequired,
+          id: PropTypes.oneOfType([PropTypes.string, PropTypes.number])
+            .isRequired,
           name: PropTypes.string.isRequired,
           description: PropTypes.string,
           rows: PropTypes.number.isRequired,
           kb: PropTypes.number.isRequired,
           rowGroups: PropTypes.number.isRequired,
-          tone: PropTypes.string.isRequired,
+          tone: PropTypes.string,
         })
       ).isRequired,
     })
-  ),
+  ).isRequired,
   footer: PropTypes.shape({
     id: PropTypes.string,
     name: PropTypes.string.isRequired,
     description: PropTypes.string.isRequired,
     rows: PropTypes.number,
     kb: PropTypes.number.isRequired,
+    rowGroups: PropTypes.number,
     tone: PropTypes.string.isRequired,
-  }),
+  }).isRequired,
 }
 
 export default GroupingSetDiagram

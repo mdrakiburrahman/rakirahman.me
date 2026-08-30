@@ -5,9 +5,16 @@ import { MDXRenderer } from "gatsby-plugin-mdx"
 import { Link } from "gatsby"
 import Layout from "./layout"
 import SEO from "./seo"
-import { BlogTitle, BlogTitleInfo, ExtLink, QuoteBlock, TagBadge } from "./atoms"
+import {
+  BlogTitle,
+  BlogTitleInfo,
+  ExtLink,
+  QuoteBlock,
+  TagBadge,
+} from "./atoms"
 import Contact from "../components/contact"
 import TOC from "./toc"
+import PostImageLightbox from "./postImageLightbox"
 
 const shortcodes = {
   ExtLink,
@@ -15,7 +22,29 @@ const shortcodes = {
   QuoteBlock,
 }
 
-const PostLayout = ({ data: { mdx, ogImage, allMdx } }) => {
+const PostLayout = ({ data }) => {
+  const completeData = Boolean(data && data.mdx && data.allMdx)
+  const lastCompleteData = React.useRef(completeData ? data : null)
+
+  if (completeData) {
+    lastCompleteData.current = data
+  }
+
+  const stableData = completeData ? data : lastCompleteData.current
+  if (!stableData) {
+    return (
+      <main
+        className="container m-auto px-5 mt-16 text-tertiary"
+        role="status"
+        aria-live="polite"
+        aria-busy="true"
+      >
+        building page...
+      </main>
+    )
+  }
+
+  const { mdx, ogImage, allMdx } = stableData
   const allPosts = allMdx.edges.map(({ node }) => ({
     slug: node.fields.slug,
     title: node.frontmatter.title,
@@ -35,7 +64,11 @@ const PostLayout = ({ data: { mdx, ogImage, allMdx } }) => {
         ogUrl={mdx.fields.slug}
       />
       <div className="flex justify-between mt-12 mb-12 relative">
-        <article className="prose sm:prose md:prose-lg min-w-0 max-w-none tracking-normal">
+        <article
+          className={`prose sm:prose md:prose-lg min-w-0 max-w-none tracking-normal ${
+            mdx.frontmatter.wide ? "post-article-wide" : ""
+          }`}
+        >
           <div className="">
             {mdx.frontmatter.tags && mdx.frontmatter.tags.length > 0 && (
               <div className="tag-scroll-container mb-5">
@@ -56,9 +89,11 @@ const PostLayout = ({ data: { mdx, ogImage, allMdx } }) => {
             />
             <BlogTitle>{mdx.frontmatter.title}</BlogTitle>
           </div>
-          <MDXProvider components={shortcodes}>
-            <MDXRenderer>{mdx.body}</MDXRenderer>
-          </MDXProvider>
+          <PostImageLightbox>
+            <MDXProvider components={shortcodes}>
+              <MDXRenderer>{mdx.body}</MDXRenderer>
+            </MDXProvider>
+          </PostImageLightbox>
         </article>
         {mdx.tableOfContents && mdx.frontmatter.toc === true && (
           <aside className="post-toc sticky hidden xl:block max-w-xs ml-6 mt-8 h-screen">
@@ -82,6 +117,7 @@ export const pageQuery = graphql`
         datetime: date
         description
         toc
+        wide
         tags
       }
       fields {

@@ -20,6 +20,8 @@ const RangeTelemetry = ({
   totalBytes,
   byteLength,
   duration,
+  assetLabel = "public OBT",
+  rowGroups,
 }) => (
   <div className={styles.telemetry} aria-live="polite">
     <div className={styles.telemetryDuration}>
@@ -27,7 +29,7 @@ const RangeTelemetry = ({
         ? "fetching..."
         : duration == null
         ? " "
-        : `fetched in ${formatDuration(duration)}`}
+        : `Your browser fetched this parquet file in ${formatDuration(duration)}`}
     </div>
     <div className={styles.telemetryDetails}>
       {requests === 0 && !loading
@@ -36,7 +38,8 @@ const RangeTelemetry = ({
             requests === 1 ? "" : "s"
           } - ${formatBytes(bytes)} fetched`}
       {" - "}
-      {((100 * totalBytes) / byteLength).toFixed(1)}% of the cube so far
+      {((100 * totalBytes) / byteLength).toFixed(1)}% of {assetLabel}
+      {rowGroups ? ` - ${rowGroups} row groups` : ""}
       {cacheHits > 0
         ? ` - ${cacheHits} cache hit${cacheHits === 1 ? "" : "s"}`
         : ""}
@@ -52,6 +55,8 @@ RangeTelemetry.propTypes = {
   totalBytes: PropTypes.number.isRequired,
   byteLength: PropTypes.number.isRequired,
   duration: PropTypes.number,
+  assetLabel: PropTypes.string,
+  rowGroups: PropTypes.number,
 }
 
 export default React.memo(RangeTelemetry)

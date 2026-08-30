@@ -1,5 +1,6 @@
 .dashboard,
-.groupingDiagram {
+.groupingDiagram,
+.transportBenchmark {
   --viz-card: #161b25;
   --viz-ink: #f7fafc;
   --viz-label: #d8e0e9;
@@ -15,6 +16,8 @@
   --viz-chip-hover: #2c3748;
   --viz-rule: rgba(226, 232, 240, 0.2);
   --viz-group: rgba(226, 232, 240, 0.06);
+  --viz-positive: #68d391;
+  --viz-negative: #fc8181;
   --viz-danger: #fc8181;
   box-sizing: border-box;
   color: var(--viz-ink);
@@ -27,13 +30,25 @@
   text-align: left;
 }
 
+.visualizationSuite {
+  width: 100%;
+}
+
+.visualizationSuite .groupingDiagram,
+.visualizationSuite .transportBenchmark {
+  margin-right: auto;
+  margin-left: auto;
+}
+
 .dashboard *,
-.groupingDiagram * {
+.groupingDiagram *,
+.transportBenchmark * {
   box-sizing: border-box;
 }
 
 :global(.light) .dashboard,
-:global(.light) .groupingDiagram {
+:global(.light) .groupingDiagram,
+:global(.light) .transportBenchmark {
   --viz-card: #ffffff;
   --viz-ink: #18181b;
   --viz-label: #3f3f46;
@@ -49,6 +64,8 @@
   --viz-chip-hover: #e4e4e7;
   --viz-rule: rgba(16, 24, 40, 0.18);
   --viz-group: rgba(16, 24, 40, 0.025);
+  --viz-positive: #18864b;
+  --viz-negative: #bc1200;
   --viz-danger: #bc1200;
 }
 
@@ -71,32 +88,43 @@
     0 12px 32px rgba(0, 0, 0, 0.22);
 }
 
+.dashboard h2,
 .dashboard h3,
 .dashboard p,
 .dashboard figure,
 .groupingDiagram p,
-.groupingDiagram figure {
+.groupingDiagram figure,
+.transportBenchmark h2,
+.transportBenchmark h3,
+.transportBenchmark h4,
+.transportBenchmark p,
+.transportBenchmark figure,
+.transportBenchmark ul {
   margin: 0;
 }
 
 .dashboardHeader {
   display: flex;
   flex-wrap: wrap;
-  align-items: baseline;
+  align-items: flex-start;
   justify-content: space-between;
   gap: 12px;
-  margin-bottom: 4px;
+  margin-bottom: 20px;
 }
 
-.dashboardTitle {
+.dashboardHeading {
+  min-width: 0;
+  flex: 1 1 480px;
+}
+
+.dashboard .dashboardTitle {
   padding: 0;
   color: var(--viz-ink);
   font-family: inherit;
   font-size: 17px;
-  font-weight: 600;
+  font-weight: 700;
   letter-spacing: -0.02em;
   line-height: 1.5;
-  text-transform: lowercase;
 }
 
 .dashboardSubtitle {
@@ -104,12 +132,27 @@
   color: var(--viz-muted);
   font-size: 12px;
   line-height: 1.5;
+}
+
+.dashboardHero {
+  flex: 0 1 auto;
+  text-align: right;
   text-transform: lowercase;
 }
 
-.dashboardSubtitle span {
-  color: var(--viz-ink);
-  font-weight: 600;
+.dashboardHeroValue {
+  min-height: 30px;
+  font-size: 26px;
+  font-weight: 700;
+  letter-spacing: -0.04em;
+  line-height: 1.2;
+}
+
+.dashboardHeroDetail {
+  margin-top: 3px;
+  color: var(--viz-muted);
+  font-size: 12px;
+  line-height: 1.5;
 }
 
 .loadingValue {
@@ -117,23 +160,51 @@
 }
 
 .telemetry {
+  width: 100%;
+  flex: 1 0 100%;
+  padding: 10px 0 14px;
   color: var(--viz-muted);
-  text-align: right;
   text-transform: lowercase;
 }
 
-.telemetryDuration {
-  min-height: 25.5px;
-  font-size: 17px;
-  font-weight: 500;
-  letter-spacing: -0.02em;
+.telemetryDuration,
+.telemetryDetails {
+  color: var(--viz-faint);
+  font-size: 11px;
+  font-style: italic;
+  font-weight: 400;
+  letter-spacing: 0;
   line-height: 1.5;
+  text-align: center;
+}
+
+.telemetryDuration {
+  min-height: 16.5px;
 }
 
 .telemetryDetails {
-  margin-top: 3px;
-  font-size: 12px;
+  margin-top: 4px;
+}
+
+.chartHeading {
+  margin-bottom: 5px;
+}
+
+.chartLabel {
+  color: var(--viz-faint);
+  font-size: 10.5px;
+  font-weight: 600;
+  letter-spacing: 0.04em;
   line-height: 1.5;
+}
+
+.chartHint {
+  display: block;
+  margin-top: 1px;
+  color: var(--viz-muted);
+  font-size: 10px;
+  font-weight: 400;
+  line-height: 1.4;
 }
 
 .chartWrap {
@@ -175,7 +246,7 @@
   transition: opacity 160ms ease-out;
 }
 
-.yearTicks {
+.chartTicks {
   position: relative;
   height: 15px;
   color: var(--viz-faint);
@@ -183,10 +254,48 @@
   line-height: 1.4;
 }
 
-.yearTicks span {
+.chartTicks span {
   position: absolute;
   top: 1px;
   pointer-events: none;
+}
+
+.chartMarkerLine {
+  stroke: var(--viz-positive);
+  stroke-dasharray: 4 4;
+  stroke-width: 1.25;
+}
+
+.chartMarker {
+  pointer-events: none;
+}
+
+.chartAfterRegion {
+  fill: var(--viz-positive);
+  opacity: 0.035;
+}
+
+.chartMarkerPill {
+  fill: var(--viz-card);
+  stroke: var(--viz-positive);
+  stroke-width: 1;
+}
+
+.chartMarkerLabel {
+  fill: var(--viz-positive);
+  font-family: inherit;
+  font-size: 9.5px;
+  font-weight: 600;
+}
+
+.dashboardToolbar {
+  display: flex;
+  min-height: 45px;
+  flex-wrap: wrap;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 8px 16px;
+  margin: 12px 0 10px;
 }
 
 .filterBar {
@@ -195,7 +304,12 @@
   flex-wrap: wrap;
   align-items: center;
   gap: 6px;
-  margin: 12px 0 10px;
+  flex: 1 1 520px;
+  margin: 0;
+}
+
+.filterBar > span.filterChip {
+  cursor: default;
 }
 
 .filterHint {
@@ -304,16 +418,15 @@
   min-width: 0;
 }
 
-.leaderboardTitle {
+.leaderboard .leaderboardTitle {
   margin: 0 0 10px;
   padding: 0;
-  color: var(--viz-muted);
+  color: var(--viz-ink);
   font-family: inherit;
   font-size: 11px;
   font-weight: 600;
   letter-spacing: 0.02em;
   line-height: 1.5;
-  text-transform: lowercase;
 }
 
 .leaderboardEmpty {
@@ -341,6 +454,10 @@
   line-height: 1.5;
   text-align: left;
   cursor: pointer;
+}
+
+.leaderboardRow:not(button) {
+  cursor: default;
 }
 
 .leaderboardRow:hover {
@@ -392,9 +509,41 @@
   white-space: nowrap;
 }
 
+.leaderboardPrefix {
+  margin-right: 6px;
+  color: var(--viz-accent);
+  font-size: 10.5px;
+  font-weight: 700;
+  letter-spacing: 0.03em;
+  text-transform: uppercase;
+}
+
+.leaderboardValueGroup {
+  position: relative;
+  display: flex;
+  flex: none;
+  align-items: baseline;
+  gap: 4px;
+  white-space: nowrap;
+}
+
 .leaderboardValue {
   flex: none;
   color: var(--viz-muted);
+}
+
+.leaderboardSecondary {
+  color: var(--viz-muted);
+  font-size: 11px;
+  font-weight: 600;
+}
+
+.positiveText {
+  color: var(--viz-positive) !important;
+}
+
+.negativeText {
+  color: var(--viz-negative) !important;
 }
 
 .leaderboardTextSelected {
@@ -762,6 +911,64 @@
   user-select: none;
 }
 
+.diagramIntro {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 20px;
+  padding: 8px 0 17px;
+  border-bottom: 1px solid var(--viz-rule);
+  margin-bottom: 23px;
+}
+
+.groupingDiagram .diagramTitle {
+  margin: 0 !important;
+  padding: 0;
+  color: var(--viz-ink);
+  font-family: inherit;
+  font-size: 17px;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  line-height: 1.5;
+  text-transform: lowercase;
+}
+
+.diagramSubtitle {
+  margin: 2px 0 0 !important;
+  color: var(--viz-muted);
+  font-size: 11.5px;
+  font-weight: 400;
+  line-height: 1.5;
+  text-transform: lowercase;
+}
+
+.diagramSummary {
+  flex: none;
+  text-align: right;
+  text-transform: uppercase;
+}
+
+.diagramSummary strong,
+.diagramSummary span {
+  display: block;
+}
+
+.diagramSummary strong {
+  color: var(--viz-accent);
+  font-size: 21px;
+  font-weight: 700;
+  letter-spacing: -0.03em;
+  line-height: 1.2;
+}
+
+.diagramSummary span {
+  margin-top: 1px;
+  color: var(--viz-muted);
+  font-size: 9.5px;
+  font-weight: 600;
+  letter-spacing: 0.03em;
+}
+
 :global(.light) .groupingDiagram {
   --diagram-group-background: rgba(16, 24, 40, 0.025);
   --diagram-hover-background: rgba(16, 24, 40, 0.05);
@@ -1047,6 +1254,17 @@
   opacity: 0.4;
 }
 
+.diagramFooterNote {
+  padding-top: 14px;
+  border-top: 1px solid var(--viz-rule);
+  margin: 22px 0 0 !important;
+  color: var(--viz-faint);
+  font-size: 10.5px;
+  line-height: 1.5;
+  text-align: center;
+  text-transform: lowercase;
+}
+
 @media (min-width: 980px) {
   .groupingDiagram {
     width: 752px;
@@ -1093,6 +1311,14 @@
   .diagramTable {
     min-width: 300px;
   }
+
+  .diagramIntro {
+    align-items: flex-start;
+  }
+
+  .diagramSummary strong {
+    font-size: 18px;
+  }
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -1129,4 +1355,468 @@
 .groupingDiagram .diagramTable .diagramSizeHeader,
 .groupingDiagram .diagramTable .diagramSizeCell {
   width: 72px;
+}
+
+/* Privy vs HC Livy transport benchmark */
+.transportBenchmark {
+  width: 100%;
+  max-width: none;
+  margin: 2rem 0;
+  padding: 8px 0 24px;
+  font-size: 12.5px;
+  line-height: 1.45;
+  -webkit-tap-highlight-color: transparent;
+  user-select: none;
+}
+
+.benchmarkIntro {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 20px;
+  padding: 8px 0 17px;
+  border-bottom: 1px solid var(--viz-rule);
+}
+
+.benchmarkIntro h2 {
+  padding: 0;
+  color: var(--viz-ink);
+  font-family: inherit;
+  font-size: 17px;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  line-height: 1.5;
+}
+
+.benchmarkIntro p {
+  margin-top: 2px;
+  color: var(--viz-muted);
+  font-size: 11.5px;
+  font-weight: 400;
+  line-height: 1.5;
+  text-transform: none;
+}
+
+.benchmarkSummary {
+  flex: none;
+  text-align: right;
+}
+
+.benchmarkSummary strong,
+.benchmarkSummary span {
+  display: block;
+}
+
+.benchmarkSummary strong {
+  color: var(--viz-ink);
+  font-size: 21px;
+  font-weight: 700;
+  letter-spacing: -0.035em;
+  line-height: 1.15;
+}
+
+.benchmarkSummary span {
+  margin-top: 2px;
+  color: var(--viz-muted);
+  font-size: 9.5px;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+}
+
+.benchmarkState {
+  padding: 28px 0;
+  color: var(--viz-muted);
+  font-size: 12px;
+  text-transform: lowercase;
+}
+
+.benchmarkContext {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px 8px;
+  padding: 14px 0 16px;
+  border-bottom: 1px solid var(--viz-rule);
+  color: var(--viz-muted);
+  font-size: 10.5px;
+  list-style: none;
+}
+
+.benchmarkContext li {
+  padding: 3px 8px;
+  border-radius: 999px;
+  background: var(--viz-group);
+  white-space: nowrap;
+}
+
+.benchmarkSection {
+  padding-top: 25px;
+}
+
+.benchmarkSection + .benchmarkSection {
+  margin-top: 25px;
+  border-top: 1px solid var(--viz-rule);
+}
+
+.benchmarkSectionHeader {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 16px;
+  margin-bottom: 11px;
+}
+
+.benchmarkSectionHeader h3 {
+  padding: 0;
+  color: var(--viz-ink);
+  font-family: inherit;
+  font-size: 13.5px;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+  line-height: 1.45;
+}
+
+.benchmarkSectionGuidance {
+  display: block;
+  margin-top: 1px;
+  color: var(--viz-muted);
+  font-size: 10px;
+  font-weight: 400;
+  line-height: 1.4;
+}
+
+.benchmarkSectionHeader p {
+  max-width: 420px;
+  color: var(--viz-muted);
+  font-size: 10.5px;
+  font-weight: 400;
+  line-height: 1.45;
+  text-align: right;
+}
+
+.benchmarkPairTable {
+  border-top: 1px solid var(--viz-rule);
+  border-bottom: 1px solid var(--viz-rule);
+}
+
+.benchmarkPairHeader,
+.benchmarkPairRow {
+  display: grid;
+  grid-template-columns:
+    minmax(150px, 1.35fr) minmax(112px, 1fr) minmax(112px, 1fr)
+    minmax(84px, 0.72fr);
+  gap: 8px;
+  align-items: center;
+}
+
+.benchmarkPairHeader {
+  min-height: 28px;
+  padding: 0 8px;
+  border-bottom: 1px solid var(--viz-rule);
+  color: var(--viz-muted);
+  font-size: 9.5px;
+  font-weight: 600;
+  letter-spacing: 0.035em;
+}
+
+.benchmarkPairHeader span:not(:first-child) {
+  text-align: right;
+}
+
+.benchmarkTransportHeader {
+  color: var(--benchmark-tone);
+}
+
+.benchmarkPairRow {
+  min-height: 40px;
+  padding: 4px 8px;
+  border: 0;
+  border-bottom: 1px solid rgba(113, 113, 122, 0.13);
+  outline: none;
+  transition: background-color 100ms ease;
+}
+
+.benchmarkPairRow:last-child {
+  border-bottom: 0;
+}
+
+.benchmarkPairRow:hover,
+.benchmarkPairRow:focus-visible,
+.benchmarkSingleRow:hover,
+.benchmarkSingleRow:focus-visible {
+  background: var(--viz-row-hover);
+}
+
+.benchmarkPairRow:focus-visible,
+.benchmarkSingleRow:focus-visible {
+  box-shadow: inset 2px 0 var(--viz-accent);
+}
+
+.benchmarkMetricLabel {
+  min-width: 0;
+  color: var(--viz-label);
+  font-size: 11.5px;
+  font-weight: 600;
+  line-height: 1.35;
+}
+
+.benchmarkMetricLabel small {
+  display: block;
+  overflow: hidden;
+  margin-top: 1px;
+  color: var(--viz-muted);
+  font-size: 9.5px;
+  font-weight: 400;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.benchmarkMetricCell {
+  position: relative;
+  display: flex;
+  min-width: 0;
+  min-height: 27px;
+  align-items: center;
+  justify-content: flex-end;
+  overflow: hidden;
+  border-radius: 4px;
+}
+
+.benchmarkMetricBar {
+  position: absolute;
+  inset: 2px auto 2px 0;
+  border-radius: 3px;
+  background: var(--benchmark-tone);
+  opacity: 0.18;
+  transition: width 180ms ease, opacity 100ms ease;
+}
+
+.benchmarkPairRow:hover .benchmarkMetricBar,
+.benchmarkPairRow:focus-visible .benchmarkMetricBar,
+.benchmarkSingleRow:hover .benchmarkMetricBar,
+.benchmarkSingleRow:focus-visible .benchmarkMetricBar {
+  opacity: 0.28;
+}
+
+.benchmarkMetricValue {
+  position: relative;
+  z-index: 1;
+  padding: 0 6px;
+  color: var(--viz-label);
+  font-size: 11px;
+  font-weight: 600;
+  line-height: 1.2;
+  text-align: right;
+  white-space: nowrap;
+}
+
+.benchmarkMetricValue small {
+  display: block;
+  margin-top: 1px;
+  color: var(--viz-muted);
+  font-size: 9px;
+  font-weight: 500;
+}
+
+.benchmarkDelta {
+  position: relative;
+  display: flex;
+  min-height: 27px;
+  align-items: center;
+  justify-content: flex-end;
+  overflow: hidden;
+  padding: 0 5px;
+  border-radius: 4px;
+  color: var(--viz-muted);
+  font-size: 10.5px;
+  font-weight: 600;
+  text-align: right;
+}
+
+.benchmarkDeltaPositive {
+  color: var(--viz-positive);
+}
+
+.benchmarkDeltaShade {
+  position: absolute;
+  width: 0;
+  height: 3px;
+  inset: auto auto 2px 0;
+  border-radius: 3px;
+  background: var(--viz-positive);
+}
+
+.benchmarkDeltaText {
+  position: relative;
+  z-index: 1;
+}
+
+.benchmarkPrivyTone {
+  --benchmark-tone: #0f766e;
+}
+
+.benchmarkLivyTone {
+  --benchmark-tone: #2563eb;
+}
+
+:global(.dark) .benchmarkPrivyTone {
+  --benchmark-tone: #81e6d9;
+}
+
+:global(.dark) .benchmarkLivyTone {
+  --benchmark-tone: #63b3ed;
+}
+
+.benchmarkPhaseGrid {
+  display: grid;
+  gap: 22px;
+}
+
+.benchmarkPhaseGroup h4 {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 0 8px 6px;
+  color: var(--viz-label);
+  font-family: inherit;
+  font-size: 10.5px;
+  font-weight: 700;
+  letter-spacing: 0.035em;
+}
+
+.benchmarkPhaseGroup h4 span {
+  width: 8px;
+  height: 8px;
+  border-radius: 2px;
+  background: var(--benchmark-tone);
+}
+
+.benchmarkSingleRow {
+  display: grid;
+  min-height: 38px;
+  grid-template-columns: minmax(190px, 1.2fr) minmax(180px, 1fr);
+  gap: 12px;
+  align-items: center;
+  padding: 4px 8px;
+  border-bottom: 1px solid rgba(113, 113, 122, 0.13);
+  outline: none;
+  transition: background-color 100ms ease;
+}
+
+.benchmarkPhaseGroup .benchmarkSingleRow:first-of-type {
+  border-top: 1px solid var(--viz-rule);
+}
+
+.benchmarkPhaseGroup .benchmarkSingleRow:last-child {
+  border-bottom: 0;
+}
+
+.benchmarkFootnote {
+  padding-top: 17px;
+  color: var(--viz-muted);
+  font-size: 10.5px;
+  font-weight: 400;
+  line-height: 1.55;
+}
+
+@media (min-width: 980px) {
+  .transportBenchmark {
+    width: 752px;
+    margin-left: -80px;
+  }
+}
+
+@media (min-width: 1344px) {
+  .transportBenchmark {
+    margin-left: -112px;
+  }
+}
+
+@media (max-width: 679px) {
+  .transportBenchmark {
+    padding-bottom: 26px;
+  }
+
+  .benchmarkIntro {
+    gap: 12px;
+  }
+
+  .benchmarkIntro h2 {
+    font-size: 15px;
+  }
+
+  .benchmarkSummary strong {
+    font-size: 18px;
+  }
+
+  .benchmarkSectionHeader {
+    display: block;
+  }
+
+  .benchmarkSectionHeader p {
+    max-width: none;
+    margin-top: 2px;
+    text-align: left;
+  }
+
+  .benchmarkPairHeader {
+    grid-template-columns: 1fr 1fr;
+  }
+
+  .benchmarkPairHeader span:first-child,
+  .benchmarkPairHeader span:last-child {
+    display: none;
+  }
+
+  .benchmarkPairHeader span {
+    text-align: right;
+  }
+
+  .benchmarkPairRow {
+    grid-template-columns: 1fr 1fr;
+    gap: 4px 8px;
+    padding-top: 7px;
+    padding-bottom: 7px;
+  }
+
+  .benchmarkPairRow > .benchmarkMetricLabel {
+    grid-column: 1 / -1;
+  }
+
+  .benchmarkPairRow > .benchmarkDelta {
+    grid-column: 1 / -1;
+    padding-right: 5px;
+  }
+
+  .benchmarkSingleRow {
+    grid-template-columns: 1fr;
+    gap: 3px;
+    padding-top: 7px;
+    padding-bottom: 7px;
+  }
+
+  .benchmarkMetricLabel small {
+    overflow: visible;
+    text-overflow: clip;
+    white-space: normal;
+  }
+}
+
+@media (max-width: 420px) {
+  .benchmarkContext li {
+    white-space: normal;
+  }
+
+  .benchmarkMetricValue {
+    padding-right: 4px;
+    padding-left: 4px;
+    font-size: 10px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .benchmarkPairRow,
+  .benchmarkSingleRow,
+  .benchmarkMetricBar {
+    transition: none;
+  }
 }

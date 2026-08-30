@@ -60,14 +60,14 @@ export class InstrumentedRangeBuffer {
     return () => this.listeners.delete(listener)
   }
 
-  createView({ label = "cube", signal } = {}) {
+  createView({ label = "parquet", signal } = {}) {
     return {
       byteLength: this.byteLength,
       slice: (start, end) => this.slice(start, end, { label, signal }),
     }
   }
 
-  slice(start, end = this.byteLength, { label = "cube", signal } = {}) {
+  slice(start, end = this.byteLength, { label = "parquet", signal } = {}) {
     this.validateRange(start, end)
     const key = `${start}:${end}`
     const cached = this.cache.get(key)

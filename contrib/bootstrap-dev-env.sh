@@ -73,6 +73,12 @@ else
     echo "sharp-cli already installed"
 fi
 
+if ! command -v duckdb &> /dev/null; then
+    echo "duckdb not found - installing..."
+    curl https://install.duckdb.org | sh
+    export PATH='/home/boor/.duckdb/cli/latest':$PATH
+fi
+
 curl -fsSL https://gh.io/copilot-install | bash;
 (type -p wget >/dev/null || (sudo apt update && sudo apt install wget -y)) \
 	&& sudo mkdir -p -m 755 /etc/apt/keyrings \

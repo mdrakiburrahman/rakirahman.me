@@ -11,10 +11,6 @@ featuredImage: "./featured-image.png"
 
 import { Callout } from "../../src/components/atoms.js"
 import { ExtLink, InlinePageLink } from "../../src/components/atoms.js"
-import {
-  GroupingSetDiagram,
-  Nyc311Dashboard,
-} from "../../src/components/visualizations"
 
 In 2023, I wrote about how I host this site [here](https://www.rakirahman.me/blog-architecture/).
 
@@ -105,25 +101,3 @@ Enjoy free SSL termination:
 Without exorbitant prices:
 
 ![Bye AFD](images/bye-afd.png)
-
-## Interactive Parquet visualization placeholder
-
-This is a placeholder for a future Cloudflare analytics story. For now, it is a
-live demonstration of a browser reading a pre-aggregated Parquet cube directly
-from Azure Blob Storage with HTTP range requests - no dashboard API or query
-server in the middle.
-
-<div>
-  <Nyc311Dashboard />
-</div>
-
-### Row groups and grouping sets
-
-<div>
-  <GroupingSetDiagram />
-</div>
-
-The source records are from the
-[NYC 311 Service Requests dataset](https://opendata.cityofnewyork.us/311-service-requests-from-2010-to-present-updates/).
-The Parquet cube layout and dashboard concept are credited to
-[Hamilton Ulmer](https://www.hamiltonulmer.com/customer-dashboards-r2-hyparquet/).
