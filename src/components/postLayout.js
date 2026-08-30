@@ -61,7 +61,7 @@ const PostLayout = ({ data: { mdx, ogImage, allMdx } }) => {
           </MDXProvider>
         </article>
         {mdx.tableOfContents && mdx.frontmatter.toc === true && (
-          <aside className="sticky hidden lg:block max-w-xs ml-6 mt-8 h-screen">
+          <aside className="post-toc sticky hidden xl:block max-w-xs ml-6 mt-8 h-screen">
             <TOC items={mdx.tableOfContents.items} />
           </aside>
         )}
