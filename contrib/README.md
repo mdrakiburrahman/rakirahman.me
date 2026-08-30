@@ -37,64 +37,24 @@
    chmod +x ${GIT_ROOT}/contrib/bootstrap-dev-env.sh && ${GIT_ROOT}/contrib/bootstrap-dev-env.sh
    ```
 
-1. Install AI tooling (optional):
+1. Login into AI tooling:
 
    ```bash
-   curl -fsSL https://gh.io/copilot-install | bash
    $HOME/.local/bin/copilot --yolo
+   ```
 
-   (type -p wget >/dev/null || (sudo apt update && sudo apt install wget -y)) \
-	&& sudo mkdir -p -m 755 /etc/apt/keyrings \
-	&& out=$(mktemp) && wget -nv -O$out https://cli.github.com/packages/githubcli-archive-keyring.gpg \
-	&& cat $out | sudo tee /etc/apt/keyrings/githubcli-archive-keyring.gpg > /dev/null \
-	&& sudo chmod go+r /etc/apt/keyrings/githubcli-archive-keyring.gpg \
-	&& sudo mkdir -p -m 755 /etc/apt/sources.list.d \
-	&& echo "deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/githubcli-archive-keyring.gpg] https://cli.github.com/packages stable main" | sudo tee /etc/apt/sources.list.d/github-cli.list > /dev/null \
-	&& sudo apt update \
-	&& sudo apt install gh -y
+   ```bash
+   gh auth login
    ```
 
 1. Get the website up at `localhost:8000`:
 
    ```bash
+   cd ~/rakirahman.me
    source ~/.bashrc
-   gatsby develop
+   gatsby develop --verbose
    ```
 
-## Optimizing images
-
-Large, high-resolution screenshots make `gatsby develop` crawl, because
-`gatsby-plugin-sharp` re-processes every multi-megabyte image on each build. The
-bootstrapper installs the [`sharp`](https://github.com/lovell/sharp) CLI, and
-[`scripts/optimize-images.sh`](../scripts/optimize-images.sh) uses it to downscale
-oversized images and re-encode them with aggressive compression, in-place. The
-original is only overwritten when the result is actually smaller, so the script is
-safe to re-run (idempotent).
-
-Run it whenever you add new images:
-
-```bash
-# Optimize every image under content/, src/ and static/
-./scripts/optimize-images.sh "*"
-
-# Optimize a single new image
-./scripts/optimize-images.sh content/my-new-post/images/screenshot.png
-
-# Optimize a whole folder of new images (recursive)
-./scripts/optimize-images.sh content/my-new-post
-
-# Optimize several specific paths at once
-./scripts/optimize-images.sh content/foo/a.png static/b.jpg
-```
-
-Tunables (optional environment variables):
-
-| Variable    | Default | Description                                        |
-| ----------- | ------- | -------------------------------------------------- |
-| `MAX_WIDTH` | `2000`  | Max output width in px; images are never upscaled. |
-| `QUALITY`   | `80`    | Encoder quality (1-100).                           |
-
-```bash
-# e.g. keep images a bit larger / higher quality
-MAX_WIDTH=2400 QUALITY=85 ./scripts/optimize-images.sh "*"
-```
+   Wait for `You can now view rakirahman.me in the browser` before opening the
+   site. Run `npm run clean` only after changing Gatsby configuration or when
+   explicitly troubleshooting stale build state; it forces a full cold rebuild.

@@ -9,7 +9,7 @@ module.exports = {
   ],
   webpackFinal: async config => {
     // Transpile Gatsby module because Gatsby includes un-transpiled ES6 code.
-    config.module.rules[0].exclude = [/node_modules\/(?!(gatsby)\/)/]
+    config.module.rules[0].exclude = [/node_modules\/(?!(gatsby|hyparquet)\/)/]
 
     // use installed babel-loader which is v8.0-beta (which is meant to work with @babel/core@7)
     config.module.rules[0].use[0].loader = require.resolve("babel-loader")
@@ -25,6 +25,8 @@ module.exports = {
       require.resolve("@babel/plugin-proposal-class-properties"),
       // use babel-plugin-remove-graphql-queries to remove static queries from components when rendering in storybook
       require.resolve("babel-plugin-remove-graphql-queries"),
+      // Hyparquet is modern ESM; Gatsby 2's Babel stack needs this syntax transform.
+      require.resolve("@babel/plugin-proposal-logical-assignment-operators"),
     ]
 
     config.module.rules.push({

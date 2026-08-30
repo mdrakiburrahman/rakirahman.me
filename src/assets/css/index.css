@@ -83,11 +83,17 @@
 @import "tailwindcss/utilities";
 
 body {
-  transition: all 300ms ease 0s;
+  transition: background-color 200ms ease, color 200ms ease;
   overflow-x: hidden;
   background-color: var(--color-bg-primary);
   color: var(--color-text-primary);
   @apply antialiased;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  body {
+    transition: none;
+  }
 }
 
 .full-width-container {
@@ -130,9 +136,132 @@ aside.sticky {
   top: 4rem;
 }
 
+.post-article-wide {
+  flex: 1 1 0%;
+  width: 100%;
+  max-width: none !important;
+}
+
+.post-image-content [data-post-lightbox-trigger] {
+  cursor: zoom-in;
+}
+
+.post-image-content img[data-post-lightbox-trigger]:focus-visible,
+.post-image-content a[data-post-lightbox-trigger]:focus-visible {
+  border-radius: 0.25rem;
+  outline: 3px solid var(--color-bg-accent);
+  outline-offset: 4px;
+}
+
+.post-image-lightbox {
+  position: fixed;
+  z-index: 10000;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 4rem;
+  background: rgba(7, 10, 16, 0.9);
+  cursor: zoom-out;
+  -webkit-backdrop-filter: blur(8px);
+  backdrop-filter: blur(8px);
+}
+
+.post-image-lightbox-content {
+  display: flex;
+  max-width: 100%;
+  max-height: 100%;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  margin: 0;
+  cursor: default;
+}
+
+.post-image-lightbox-content img {
+  width: auto;
+  max-width: 100%;
+  height: auto;
+  max-height: calc(100vh - 8rem);
+  border-radius: 0.375rem;
+  object-fit: contain;
+  box-shadow: 0 24px 80px rgba(0, 0, 0, 0.45);
+}
+
+.post-image-lightbox-content figcaption {
+  max-width: 72rem;
+  margin-top: 0.75rem;
+  color: #edf2f7;
+  font-size: 0.875rem;
+  line-height: 1.5;
+  text-align: center;
+}
+
+.post-image-lightbox-close {
+  position: fixed;
+  z-index: 1;
+  top: 1rem;
+  right: 1rem;
+  display: flex;
+  width: 2.75rem;
+  height: 2.75rem;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid rgba(255, 255, 255, 0.24);
+  border-radius: 9999px;
+  color: #ffffff;
+  background: rgba(22, 27, 37, 0.8);
+  font-family: Arial, sans-serif;
+  font-size: 2rem;
+  font-weight: 300;
+  line-height: 1;
+  cursor: pointer;
+}
+
+.post-image-lightbox-close:hover {
+  background: rgba(45, 55, 72, 0.96);
+}
+
+.post-image-lightbox-close:focus-visible {
+  outline: 3px solid #81e6d9;
+  outline-offset: 3px;
+}
+
+.post-toc {
+  z-index: 20;
+  transform: translateX(5rem);
+}
+
+.post-toc .toc {
+  width: 20rem;
+  padding: 1.25rem;
+  border: 1px solid rgba(226, 232, 240, 0.12);
+  border-radius: 0.75rem;
+  background: rgba(22, 27, 37, 0.82);
+  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.18);
+  -webkit-backdrop-filter: blur(12px);
+  backdrop-filter: blur(12px);
+}
+
+.light .post-toc .toc {
+  border-color: rgba(45, 55, 72, 0.1);
+  background: rgba(255, 255, 255, 0.8);
+  box-shadow: 0 12px 32px rgba(45, 55, 72, 0.1);
+}
+
 @media (min-width: 1024px) {
   :root {
     scroll-behavior: smooth;
+  }
+}
+
+@media (max-width: 640px) {
+  .post-image-lightbox {
+    padding: 3.75rem 1rem 1rem;
+  }
+
+  .post-image-lightbox-content img {
+    max-height: calc(100vh - 6rem);
   }
 }
 

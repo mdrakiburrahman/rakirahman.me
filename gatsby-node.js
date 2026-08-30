@@ -1,6 +1,32 @@
 const path = require("path")
 const { createFilePath } = require("gatsby-source-filesystem")
 
+exports.onCreateWebpackConfig = ({ actions }) => {
+  actions.setWebpackConfig({
+    module: {
+      rules: [
+        {
+          test: /\.js$/,
+          include: /node_modules[\\/]hyparquet[\\/]src/,
+          use: {
+            loader: require.resolve("babel-loader"),
+            options: {
+              babelrc: false,
+              cacheDirectory: true,
+              plugins: [
+                require.resolve(
+                  "@babel/plugin-proposal-logical-assignment-operators"
+                ),
+              ],
+              presets: [require.resolve("babel-preset-gatsby")],
+            },
+          },
+        },
+      ],
+    },
+  })
+}
+
 exports.onCreateNode = ({ node, actions, getNode }) => {
   const { createNodeField } = actions
 

@@ -1,6 +1,7 @@
 import React from "react"
 import { useDarkMode } from "storybook-dark-mode"
 import { ThemeProvider } from "../src/context/themeContext"
+import "@fontsource/inter/variable.css"
 import "../src/assets/css/index.css"
 
 const Layout = ({ children }) => {
