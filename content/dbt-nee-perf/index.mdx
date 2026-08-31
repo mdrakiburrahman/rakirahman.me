@@ -38,7 +38,7 @@ Original architecture (1-4) VS new architecture (5-7):
 4. Running on a Spark 3.5 cluster without [Native Execution Engine (NEE)](https://learn.microsoft.com/en-us/fabric/data-engineering/native-execution-engine-overview?tabs=sparksql), Spark performs all operation on the row-wise [`InternalRow.scala`](https://github.com/apache/spark/blob/branch-3.5/sql/catalyst/src/main/scala/org/apache/spark/sql/catalyst/InternalRow.scala). This is the reality of Spark of the ye old days that we all know.
 5. Run `dbtRunner` right on the driver-node, with no HTTP requests getting in the way. I created this execution mode [in this PR to `dbt-fabricspark`](https://github.com/microsoft/dbt-fabricspark/pull/273) with `method: session`
 6. Migrated the dbt target to a [schema-enabled lakehouse](https://learn.microsoft.com/en-us/fabric/data-engineering/lakehouse-schemas), which comfortably allows 32 CTAS-es at once without any problem.
-7. Running dbt on a Spark 3.5 cluster with NEE on.
+7. Running dbt on a Spark 4.1 cluster with NEE on.
 
 Both used [Spark Dynamic Allocation](https://spark.apache.org/docs/latest/job-scheduling.html#dynamic-resource-allocation) with 8-200 Executors, 16 cores each.
 
@@ -80,7 +80,7 @@ So, I created a little library called [`mdrakiburrahman/privy`](https://github.c
 
 <Callout>
 
-I also added support to the dbt adapter for `method: privy` in an abandoned POC branch [here](https://github.com/microsoft/dbt-fabricspark/pull/262/changes), but did not merge it, because IMO the `method: session` approach is a lot more elegant with no additional Azure Relay infra overheady.
+I also added support to the dbt adapter for `method: privy` in an abandoned POC branch [here](https://github.com/microsoft/dbt-fabricspark/pull/262/changes), but did not merge it, because IMO the `method: session` approach is a lot more elegant with no additional Azure Relay infra overhead.
 In the future, it would be ideal for Fabric Spark to have a direct ingress controller which minimizes latency, network hops, and throttling - similar to Privy or the [Fabric Data Warehouse Gateway](https://learn.microsoft.com/en-us/azure/azure-sql/database/connectivity-architecture?view=azuresql).
 
 </Callout>
@@ -91,7 +91,7 @@ Here are the results from benchmarking Privy VS High Concurrency Livy with a sim
 
 <LivyPrivyBenchmark />
 
-So— the transport overhead is pretty real. If you have the option to do so, orchestrating dbt with Fabric Spark right inside the Driver Node allows you to max out your Spark Clusters.
+So - the transport overhead is pretty real. If you have the option to do so, orchestrating dbt with Fabric Spark right inside the Driver Node allows you to max out your Spark Clusters.
 
 ## Lessons Learned
 
