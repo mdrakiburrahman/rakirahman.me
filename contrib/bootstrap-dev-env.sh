@@ -86,7 +86,10 @@ if ! command -v duckdb &> /dev/null; then
     echo 'export PATH="$HOME/.duckdb/cli/latest:$PATH"' >> ~/.bashrc
 fi
 
-if [ ! -x "$HOME/.local/bin/copilot" ]; then
+# With ~/.local/bin on PATH the installer doesn't stop to ask about adding it.
+mkdir -p "$HOME/.local/bin"
+export PATH="$HOME/.local/bin:$PATH"
+if ! command -v copilot &> /dev/null; then
     curl -fsSL https://gh.io/copilot-install | bash
 fi
 
@@ -105,7 +108,6 @@ fi
 if ! command -v uv &> /dev/null; then
     echo "uv not found, installing..."
     curl -LsSf https://astral.sh/uv/install.sh | sh
-    source $HOME/.local/bin/env
 else
     echo "uv already installed"
 fi
@@ -132,7 +134,7 @@ echo "│ Versions │"
 echo "└──────────┘"
 echo ""
 
-echo "copilot version: " $(${HOME}/.local/bin/copilot --version)
+echo "copilot version: " $(copilot --version)
 echo "gh version: " $(gh --version)
 echo "nvm version: " $(nvm --version)
 echo "node version: " $(node --version)
