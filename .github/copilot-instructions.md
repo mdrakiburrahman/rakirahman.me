@@ -16,8 +16,10 @@ an Azure Storage Account static website behind a CDN.
 - `npm run storybook` — component workbench at `localhost:6006`; `npm run build-storybook`.
 - `npm test` — **not implemented** (placeholder that echoes and exits 1). There is no test suite.
 
-Node 14.x is used in CI. First-time Linux/WSL setup is scripted in
-`contrib/bootstrap-dev-env.sh` (see `contrib/README.md`); it installs tooling idempotently.
+Node 14.x is used in CI. First-time WSL setup is one command,
+`task --taskfile contrib/bootstrap-dev-env.yaml` (see `contrib/README.md`): it recreates WSL,
+clones the current branch into `/workspaces/rakirahman.me`, installs tooling idempotently with
+`contrib/bootstrap-dev-env.sh`, and builds the site.
 
 ## Architecture
 

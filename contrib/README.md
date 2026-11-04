@@ -8,33 +8,28 @@
    winget install -e --id Microsoft.VisualStudioCode
    ```
 
-1. Get a fresh new WSL machine up:
+1. From an **elevated PowerShell 7** prompt in the checkout, install [Task](https://taskfile.dev)
+   and run [`bootstrap-dev-env.yaml`](bootstrap-dev-env.yaml):
 
-   > ⚠️ Warning: this removes Docker Desktop if you have it installed
+   > ⚠️ This **deletes every WSL distribution** on the machine before recreating `Ubuntu-24.04`, and
+   > removes Docker Desktop if you have it installed. Push any work inside WSL first.
 
    ```powershell
-   $GIT_ROOT = git rev-parse --show-toplevel
-   & "$GIT_ROOT\contrib\bootstrap-dev-env.ps1"
+   winget install Task.Task
+   $env:PATH = [Environment]::GetEnvironmentVariable('PATH', 'Machine') + ';' + [Environment]::GetEnvironmentVariable('PATH', 'User')
+   task --taskfile contrib/bootstrap-dev-env.yaml
    ```
 
-1. Clone the repo, and open VSCode in it:
+   Without any prompts, this recreates WSL on the drive with the most free space and clones your
+   current branch into `/workspaces/rakirahman.me` with this checkout's git identity. It then runs
+   [`bootstrap-dev-env.sh`](bootstrap-dev-env.sh), which installs all tools idempotently and builds
+   the site, then opens the repo in VS Code connected to WSL. After a restart, run
+   `task --taskfile contrib/bootstrap-dev-env.yaml up` instead; it keeps WSL and reopens VS Code.
+
+1. Install the MDX extension from VS Code's WSL terminal (optional):
 
    ```bash
-   cd ~/
-
-   git config --global user.name "Raki Rahman"
-   git config --global user.email "mdrakiburrahman@gmail.com"
-   git clone https://github.com/mdrakiburrahman/rakirahman.me.git
-
-   cd rakirahman.me/
-   code .
-   ```
-
-1. Run the bootstrapper script, that installs all tools idempotently:
-
-   ```bash
-   GIT_ROOT=$(git rev-parse --show-toplevel)
-   chmod +x ${GIT_ROOT}/contrib/bootstrap-dev-env.sh && ${GIT_ROOT}/contrib/bootstrap-dev-env.sh
+   code --install-extension unifiedjs.vscode-mdx
    ```
 
 1. Login into AI tooling:
@@ -50,8 +45,7 @@
 1. Get the website up at `localhost:8000`:
 
    ```bash
-   cd ~/rakirahman.me
-   source ~/.bashrc
+   cd /workspaces/rakirahman.me
    gatsby develop --verbose
    ```
 
